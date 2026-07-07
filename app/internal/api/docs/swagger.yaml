@@ -1,0 +1,179 @@
+basePath: /
+definitions:
+  model.ErrorResponse:
+    properties:
+      message:
+        example: error message
+        type: string
+    type: object
+  model.GoogleAuthRequest:
+    properties:
+      app_type:
+        type: string
+      id_token:
+        type: string
+    type: object
+  model.LoginRequest:
+    properties:
+      password:
+        example: password123
+        type: string
+      phoneNumber:
+        example: "1234567890"
+        type: string
+    type: object
+  model.LoginResponse:
+    properties:
+      accessToken:
+        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        type: string
+      refreshToken:
+        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        type: string
+      user:
+        $ref: '#/definitions/model.UserResponse'
+    type: object
+  model.RefreshResponse:
+    properties:
+      accessToken:
+        type: string
+      refreshToken:
+        type: string
+    type: object
+  model.RegisterRequest:
+    properties:
+      fullName:
+        type: string
+      password:
+        type: string
+      phoneNumber:
+        type: string
+    type: object
+  model.UserResponse:
+    properties:
+      email:
+        type: string
+      fullName:
+        type: string
+      gender:
+        type: string
+      id:
+        type: string
+      photo:
+        type: string
+      role:
+        type: string
+      status:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: Task API server.
+  title: Swagger Task API
+  version: "1.0"
+paths:
+  /api/v1/auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate user and return access token
+      parameters:
+      - description: Login credentials
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/model.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.LoginResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      summary: User login
+      tags:
+      - Auth
+  /api/v1/auth/login/with-google:
+    post:
+      consumes:
+      - application/json
+      description: Register a new user using Google and return token with user data
+      parameters:
+      - description: Google auth request
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/model.GoogleAuthRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.LoginResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      summary: User registration with Google
+      tags:
+      - Auth
+  /api/v1/auth/refresh:
+    get:
+      consumes:
+      - application/json
+      description: Refresh access token using refresh token
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.RefreshResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      summary: Token refresh
+      tags:
+      - Auth
+  /api/v1/auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Register a new user and return token with user data
+      parameters:
+      - description: Registration data
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/model.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      summary: User registration
+      tags:
+      - Auth
+swagger: "2.0"
