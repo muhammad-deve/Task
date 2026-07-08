@@ -125,3 +125,19 @@ func ValidateRegisterInput(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 
 }
+
+// ValidateRefreshInput binds and validates refresh token request body before reaching handler
+func ValidateRefreshInput(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		var req model.RefreshRequest
+		if err := c.Bind(&req); err != nil {
+			return c.JSON(http.StatusBadRequest, model.ErrorResponse{Message: "invalid request body"})
+		}
+		if req.RefreshToken == "" {
+			return c.JSON(http.StatusBadRequest, model.ErrorResponse{Message: "refresh token is required"})
+		}
+
+		c.Set("refreshBody", req)
+		return next(c)
+	}
+}

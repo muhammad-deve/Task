@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net/http"
 	"time"
 
 	"github.com/google/uuid"
@@ -29,10 +28,6 @@ func NewAuthS(cfg *config.Config, repo *repository.Repository) *AuthS {
 }
 
 func (s *AuthS) Register(ctx context.Context, req model.RegisterRequest, jwtCfg *config.JwtConfig) (model.LoginResponse, error) {
-	if req.PhoneNumber == "" || req.Password == "" {
-		return model.LoginResponse{}, errors.New(http.StatusText(http.StatusBadRequest))
-	}
-
 	_, err := s.repo.PgRepo.Repo.GetUserByPhoneNumber(ctx, &req.PhoneNumber)
 	if err == nil {
 		return model.LoginResponse{}, errors.New("user already exists")
@@ -82,10 +77,6 @@ func (s *AuthS) Register(ctx context.Context, req model.RegisterRequest, jwtCfg 
 }
 
 func (s *AuthS) Login(ctx context.Context, req model.LoginRequest, jwtCfg *config.JwtConfig) (model.LoginResponse, error) {
-	if req.PhoneNumber == "" || req.Password == "" {
-		return model.LoginResponse{}, errors.New(http.StatusText(http.StatusBadRequest))
-	}
-
 	user, err := s.repo.PgRepo.Repo.GetUserByPhoneNumber(ctx, &req.PhoneNumber)
 	if err != nil {
 		return model.LoginResponse{}, errors.New("phone number or password is incorrect")
@@ -120,20 +111,14 @@ func (s *AuthS) Login(ctx context.Context, req model.LoginRequest, jwtCfg *confi
 }
 
 func (s *AuthS) Refresh(ctx context.Context, req model.RefreshRequest, jwtCfg *config.JwtConfig) (model.RefreshResponse, error) {
-	fmt.Println(req.RefreshToken)
-	if req.RefreshToken == "" {
-		return model.RefreshResponse{}, errors.New(http.StatusText(http.StatusUnauthorized))
-	}
-	refreshToken := req.RefreshToken
-
-	sub, err := utils.ValidateJWT(refreshToken, jwtCfg.SecretKey)
+	sub, err := utils.ValidateJWT(req.RefreshToken, jwtCfg.SecretKey)
 	if err != nil {
-		return model.RefreshResponse{}, errors.New(http.StatusText(http.StatusUnauthorized))
+		return model.RefreshResponse{}, errors.New("invalid or expired refresh token")
 	}
 
-	user, gErr := s.repo.PgRepo.Repo.GetUserByID(ctx, fmt.Sprint(sub))
-	if gErr != nil {
-		return model.RefreshResponse{}, gErr
+	user, err := s.repo.PgRepo.Repo.GetUserByID(ctx, fmt.Sprint(sub))
+	if err != nil {
+		return model.RefreshResponse{}, errors.New("invalid or expired refresh token")
 	}
 
 	accessToken, err := utils.CreateJWT(time.Duration(jwtCfg.AccessToken.ExpiresIn)*time.Second,
@@ -142,13 +127,13 @@ func (s *AuthS) Refresh(ctx context.Context, req model.RefreshRequest, jwtCfg *c
 	if err != nil {
 		return model.RefreshResponse{}, err
 	}
-	refreshToken, err = utils.CreateJWT(time.Duration(jwtCfg.RefreshToken.ExpiresIn)*time.Second,
+	refreshToken, err := utils.CreateJWT(time.Duration(jwtCfg.RefreshToken.ExpiresIn)*time.Second,
 		user.ID,
 		jwtCfg.SecretKey)
 	if err != nil {
 		return model.RefreshResponse{}, err
 	}
-	fmt.Println("accessToken", accessToken)
+
 	return model.RefreshResponse{
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
