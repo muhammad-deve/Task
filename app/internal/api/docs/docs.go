@@ -69,59 +69,8 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/auth/login/with-google": {
-            "post": {
-                "description": "Register a new user using Google and return token with user data",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "auth"
-                ],
-                "summary": "User registration with Google",
-                "parameters": [
-                    {
-                        "description": "Google auth request",
-                        "name": "input",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/model.GoogleAuthRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/model.LoginResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/model.ErrorResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/model.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
         "/api/v1/auth/refresh": {
             "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
                 "description": "Refresh access token using refresh token",
                 "consumes": [
                     "application/json"
@@ -133,6 +82,17 @@ const docTemplate = `{
                     "auth"
                 ],
                 "summary": "Token refresh",
+                "parameters": [
+                    {
+                        "description": "Refresh token",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.RefreshRequest"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -151,7 +111,7 @@ const docTemplate = `{
         },
         "/api/v1/auth/register": {
             "post": {
-                "description": "Register a new user and return token with user data",
+                "description": "Register a new user and return access token with user data",
                 "consumes": [
                     "application/json"
                 ],
@@ -175,10 +135,19 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "201": {
-                        "description": "Created"
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/model.LoginResponse"
+                        }
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/model.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
                         "schema": {
                             "$ref": "#/definitions/model.ErrorResponse"
                         }
@@ -936,17 +905,6 @@ const docTemplate = `{
                 }
             }
         },
-        "model.GoogleAuthRequest": {
-            "type": "object",
-            "properties": {
-                "app_type": {
-                    "type": "string"
-                },
-                "id_token": {
-                    "type": "string"
-                }
-            }
-        },
         "model.ListDriversResponse": {
             "type": "object",
             "properties": {
@@ -977,11 +935,11 @@ const docTemplate = `{
             "properties": {
                 "password": {
                     "type": "string",
-                    "example": "password123"
+                    "example": "ASDF1234"
                 },
                 "phoneNumber": {
                     "type": "string",
-                    "example": "1234567890"
+                    "example": "+998901234567"
                 }
             }
         },
@@ -1015,6 +973,14 @@ const docTemplate = `{
                 }
             }
         },
+        "model.RefreshRequest": {
+            "type": "object",
+            "properties": {
+                "refreshToken": {
+                    "type": "string"
+                }
+            }
+        },
         "model.RefreshResponse": {
             "type": "object",
             "properties": {
@@ -1028,12 +994,17 @@ const docTemplate = `{
         },
         "model.RegisterRequest": {
             "type": "object",
+            "required": [
+                "password"
+            ],
             "properties": {
                 "fullName": {
                     "type": "string"
                 },
                 "password": {
-                    "type": "string"
+                    "type": "string",
+                    "minLength": 8,
+                    "example": "ASDF1234"
                 },
                 "phoneNumber": {
                     "type": "string"
@@ -1071,25 +1042,13 @@ const docTemplate = `{
         "model.UserResponse": {
             "type": "object",
             "properties": {
-                "email": {
-                    "type": "string"
-                },
                 "fullName": {
-                    "type": "string"
-                },
-                "gender": {
                     "type": "string"
                 },
                 "id": {
                     "type": "string"
                 },
-                "photo": {
-                    "type": "string"
-                },
-                "role": {
-                    "type": "string"
-                },
-                "status": {
+                "phoneNumber": {
                     "type": "string"
                 }
             }
@@ -1122,20 +1081,20 @@ const docTemplate = `{
     },
     "tags": [
         {
-            "description": "Driver management operations",
-            "name": "drivers"
+            "description": "Authentication endpoints",
+            "name": "auth"
         },
         {
             "description": "Driver activity tracking and working hours",
             "name": "driver-activity"
         },
         {
-            "description": "System health and monitoring",
-            "name": "system"
+            "description": "Driver management operations",
+            "name": "drivers"
         },
         {
-            "description": "Authentication endpoints",
-            "name": "auth"
+            "description": "System health and monitoring",
+            "name": "system"
         }
     ]
 }`

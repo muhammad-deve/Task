@@ -13,15 +13,9 @@ type (
 		App      AppConfig      `yaml:"app"`
 		Server   ServerConfig   `yaml:"server"`
 		Postgres PostgresConfig `yaml:"postgres"`
-		Redis    RedisConfig    `yaml:"redis"`
 		Minio    MinioConfig    `yaml:"minio"`
-		Security SecurityConfig `yaml:"security"`
-		Cookie   CookieConfig   `yaml:"cookie"`
-		Session  SessionConfig  `yaml:"session"`
-		Metrics  MetricsConfig  `yaml:"metrics"`
 		Logger   LoggerConfig   `yaml:"logger"`
 		Jwt      JwtConfig      `yaml:"jwt"`
-		Google   GoogleConfig   `yaml:"google"`
 	}
 
 	AppConfig struct {
@@ -30,12 +24,7 @@ type (
 		IsDebug       bool   `yaml:"is-debug" env:"APP_IS_DEBUG"`
 		IsDevelopment bool   `yaml:"is-development" env:"APP_IS_DEVELOPMENT"`
 	}
-	GoogleConfig struct {
-		AndroidClientId string `yaml:"android-client-id" env:"GOOGLE_ANDROID_CLIENT_ID"`
-		IOSClientId string `yaml:"ios-client-id" env:"GOOGLE_IOS_CLIENT_ID"`
-		WebClientId string `yaml:"web-client-id" env:"GOOGLE_WEB_CLIENT_ID"`
-		WebClientSecret string `yaml:"web-client-secret" env:"GOOGLE_WEB_CLIENT_SECRET"`
-	}
+
 	ServerConfig struct {
 		Http              HttpConfig `yaml:"http"`
 		CtxDefaultTimeout int        `yaml:"ctx-default-timeout" env:"SERVER_CTX_DEFAULT_TIMEOUT"`
@@ -70,17 +59,13 @@ type (
 	}
 
 	AccessTokenConfig struct {
-		PrivateKey string `yaml:"private-key" env:"JWT_ACCESS_TOKEN_PRIVATE_KEY"`
-		PublicKey  string `yaml:"public-key" env:"JWT_ACCESS_TOKEN_PUBLIC_KEY"`
-		ExpiresIn  int    `yaml:"expires-in" env:"JWT_ACCESS_TOKEN_EXPIRES_IN"`
-		MaxAge     int    `yaml:"max-age" env:"JWT_ACCESS_TOKEN_MAX_AGE"`
+		ExpiresIn int `yaml:"expires-in" env:"JWT_ACCESS_TOKEN_EXPIRES_IN"`
+		MaxAge    int `yaml:"max-age" env:"JWT_ACCESS_TOKEN_MAX_AGE"`
 	}
 
 	RefreshTokenConfig struct {
-		PrivateKey string `yaml:"private-key" env:"JWT_REFRESH_TOKEN_PRIVATE_KEY"`
-		PublicKey  string `yaml:"public-key" env:"JWT_REFRESH_TOKEN_PUBLIC_KEY"`
-		ExpiresIn  int    `yaml:"expires-in" env:"JWT_REFRESH_TOKEN_EXPIRES_IN"`
-		MaxAge     int    `yaml:"max-age" env:"JWT_REFRESH_TOKEN_MAX_AGE"`
+		ExpiresIn int `yaml:"expires-in" env:"JWT_REFRESH_TOKEN_EXPIRES_IN"`
+		MaxAge    int `yaml:"max-age" env:"JWT_REFRESH_TOKEN_MAX_AGE"`
 	}
 
 	LoggerConfig struct {
@@ -98,45 +83,11 @@ type (
 		Driver      string `yaml:"driver" env:"POSTGRES_DRIVER"`
 	}
 
-	RedisConfig struct {
-		Username           string `yaml:"username" env:"REDIS_USERNAME"`
-		Host               string `yaml:"host" env:"REDIS_HOST"`
-		Password           string `yaml:"password" env:"REDIS_PASSWORD"`
-		Port               int    `yaml:"port" env:"REDIS_PORT"`
-		Db                 int    `yaml:"db" env:"REDIS_DB"`
-		MinIdleConnections int    `yaml:"min-idle-connections" env:"REDIS_MIN_IDLE_CONNECTIONS"`
-		PoolSize           int    `yaml:"pool-size" env:"REDIS_POOL_SIZE"`
-		PoolTimeout        int    `yaml:"pool-timeout" env:"REDIS_POOL_TIMEOUT"`
-	}
-
 	MinioConfig struct {
 		Endpoint  string `yaml:"endpoint" env:"MINIO_ENDPOINT"`
 		AccessKey string `env:"MINIO_ACCESS_KEY"`
 		SecretKey string `env:"MINIO_SECRET_KEY"`
 		UseSSL    bool   `yaml:"use-ssl" env:"MINIO_USE_SSL"`
-	}
-
-	SecurityConfig struct {
-		PasswordEncryptKey string `yaml:"password-encrypt-key" env:"PASSWORD_ENCRYPT_KEY"`
-	}
-
-	CookieConfig struct {
-		Name     string `yaml:"name" env:"COOKIE_NAME"`
-		MaxAge   int    `yaml:"max-age" env:"COOKIE_MAX_AGE"`
-		Secure   bool   `yaml:"secure" env:"COOKIE_SECURE"`
-		HttpOnly bool   `yaml:"http-only" env:"COOKIE_HTTP_ONLY"`
-	}
-
-	SessionConfig struct {
-		Prefix string `yaml:"prefix" env:"SESSION_PREFIX"`
-		Name   string `yaml:"name" env:"SESSION_NAME"`
-		Expire int    `yaml:"expire" env:"SESSION_EXPIRE"`
-	}
-
-	MetricsConfig struct {
-		Host        string `yaml:"host" env:"METRICS_HOST"`
-		Port        int    `yaml:"port" env:"METRICS_PORT"`
-		ServiceName string `yaml:"service-name" env:"METRICS_SERVICE_NAME"`
 	}
 )
 

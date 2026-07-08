@@ -56,3 +56,27 @@ func Decrypt(encrypted string, secretKey string) (string, error) {
 
 	return string(plaintext), nil
 }
+
+// ValidatePassword checks if password is at least 8 characters and contains both letters and numbers
+func ValidatePassword(password string) bool {
+	if len(password) < 8 {
+		return false
+	}
+
+	hasLetter := false
+	hasNumber := false
+
+	for _, char := range password {
+		if (char >= 'a' && char <= 'z') || (char >= 'A' && char <= 'Z') {
+			hasLetter = true
+		}
+		if char >= '0' && char <= '9' {
+			hasNumber = true
+		}
+		if hasLetter && hasNumber {
+			return true
+		}
+	}
+
+	return hasLetter && hasNumber
+}

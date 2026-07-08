@@ -71,7 +71,7 @@ func CheckAuth(cfg *config.Config) echo.MiddlewareFunc {
 			fields := strings.Fields(authHeader)
 			if len(fields) == 2 && strings.EqualFold(fields[0], "Bearer") {
 				accessToken = fields[1]
-			} 
+			}
 
 			if accessToken == "" {
 				return c.JSON(http.StatusUnauthorized, model.ErrorResponse{Message: "you are not logged in"})
@@ -113,6 +113,11 @@ func ValidateRegisterInput(next echo.HandlerFunc) echo.HandlerFunc {
 		}
 		if req.PhoneNumber == "" || req.Password == "" {
 			return c.JSON(http.StatusBadRequest, model.ErrorResponse{Message: "phone number and password are required"})
+		}
+
+		// Validate password: at least 8 characters with letters and numbers
+		if !utils.ValidatePassword(req.Password) {
+			return c.JSON(http.StatusBadRequest, model.ErrorResponse{Message: "password must be at least 8 characters and contain both letters and numbers"})
 		}
 
 		c.Set("registerBody", req)

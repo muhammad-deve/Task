@@ -1,34 +1,22 @@
 package model
 
 type User struct {
-	ID       string  `json:"id"`
-	FullName *string `json:"fullName,omitempty"`
-	Email    *string `json:"email,omitempty"`
-	Role     *string `json:"role,omitempty"`
-	Gender   *string `json:"gender,omitempty"`
-	Status   *string `json:"status,omitempty"`
-	Photo    *string `json:"photo,omitempty"`
+	ID          string  `json:"id"`
+	FullName    *string `json:"fullName,omitempty"`
+	PhoneNumber *string `json:"phoneNumber,omitempty"`
 }
+
 // LoginRequest represents login request body
-	type LoginRequest struct {
-		PhoneNumber string `json:"phoneNumber" example:"1234567890"`
-		Password string `json:"password" example:"password123"`
-	}
-type GoogleAuthRequest struct {
-	IDToken string `json:"id_token"`
-	AppType string `json:"app_type"`
-}
-type LoginEmailRequest struct {
-	Email string `json:"email" example:"user@example.com"`
-	IdToken string `json:"id_token"`
-	FullName string `json:"full_name"`
+type LoginRequest struct {
+	PhoneNumber string `json:"phoneNumber" example:"+998901234567"`
+	Password    string `json:"password" example:"ASDF1234"`
 }
 
 // LoginResponse represents successful login response
 type LoginResponse struct {
-	AccessToken string       `json:"accessToken" example:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."`
+	AccessToken  string       `json:"accessToken" example:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."`
 	RefreshToken string       `json:"refreshToken" example:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."`
-	User  UserResponse `json:"user"`
+	User         UserResponse `json:"user"`
 }
 
 // ErrorResponse represents an error response
@@ -38,20 +26,16 @@ type ErrorResponse struct {
 
 // RegisterRequest represents registration request body
 type RegisterRequest struct {
-	FullName string `json:"fullName"`
-	PhoneNumber   string `json:"phoneNumber"`
-	Password string `json:"password"`
+	FullName    string `json:"fullName"`
+	PhoneNumber string `json:"phoneNumber"`
+	Password    string `json:"password" validate:"required,min=8,containsLettersAndNumbers" example:"ASDF1234"`
 }
 
 // UserResponse represents a safe subset of user data returned to clients
 type UserResponse struct {
-	ID       string  `json:"id"`
-	FullName *string `json:"fullName,omitempty"`
-	Email    *string `json:"email,omitempty"`
-	Role     *string `json:"role,omitempty"`
-	Gender   *string `json:"gender,omitempty"`
-	Status   *string `json:"status,omitempty"`
-	Photo    *string `json:"photo,omitempty"`
+	ID          string  `json:"id"`
+	FullName    *string `json:"fullName,omitempty"`
+	PhoneNumber *string `json:"phoneNumber,omitempty"`
 }
 
 type RefreshRequest struct {
@@ -63,7 +47,7 @@ type LogoutRequest struct {
 }
 
 type RefreshResponse struct {
-	AccessToken string `json:"accessToken"`
+	AccessToken  string `json:"accessToken"`
 	RefreshToken string `json:"refreshToken"`
 }
 type LogoutResponse struct {

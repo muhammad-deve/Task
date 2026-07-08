@@ -44,17 +44,17 @@ import (
 // @name Authorization
 // @description Type "Bearer" followed by a space and JWT token.
 
-// @tag.name drivers
-// @tag.description Driver management operations
+// @tag.name auth
+// @tag.description Authentication endpoints
 
 // @tag.name driver-activity
 // @tag.description Driver activity tracking and working hours
 
+// @tag.name drivers
+// @tag.description Driver management operations
+
 // @tag.name system
 // @tag.description System health and monitoring
-
-// @tag.name auth
-// @tag.description Authentication endpoints
 func Run(cfg *config.Config) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()

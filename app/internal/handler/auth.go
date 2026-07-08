@@ -1,12 +1,10 @@
 package handler
 
 import (
-	"context"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
 	"gitlab.yurtal.tech/company/blitz/back/internal/model"
-	"google.golang.org/api/idtoken"
 )
 
 // Login handles user login
@@ -44,13 +42,14 @@ func (h *Handler) Login(c echo.Context) error {
 
 // Register handles user registration
 // @Summary User registration
-// @Description Register a new user and return token with user data
+// @Description Register a new user and return access token with user data
 // @Tags auth
 // @Accept json
 // @Produce json
 // @Param   input  body      model.RegisterRequest  true  "Registration data"
-// @Success 201
+// @Success 201 {object} model.LoginResponse
 // @Failure 400 {object} model.ErrorResponse
+// @Failure 409 {object} model.ErrorResponse
 // @Router /api/v1/auth/register [post]
 func (h *Handler) RegisterUser(c echo.Context) error {
 	var req model.RegisterRequest
@@ -66,12 +65,16 @@ func (h *Handler) RegisterUser(c echo.Context) error {
 		}
 	}
 
-	err := h.service.Auth().Register(c.Request().Context(), req)
+	resp, err := h.service.Auth().Register(c.Request().Context(), req, &h.cfg.Jwt)
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, model.ErrorResponse{Message: err.Error()})
+		statusCode := http.StatusBadRequest
+		if err.Error() == "user already exists" {
+			statusCode = http.StatusConflict
+		}
+		return c.JSON(statusCode, model.ErrorResponse{Message: err.Error()})
 	}
 
-	return c.NoContent(http.StatusCreated)
+	return c.JSON(http.StatusCreated, resp)
 }
 
 // Refresh handles token refresh
@@ -80,9 +83,9 @@ func (h *Handler) RegisterUser(c echo.Context) error {
 // @Tags auth
 // @Accept json
 // @Produce json
+// @Param   input  body      model.RefreshRequest  true  "Refresh token"
 // @Success 200 {object} model.RefreshResponse
 // @Failure 401 {object} model.ErrorResponse
-// @Security BearerAuth
 // @Router /api/v1/auth/refresh [post]
 func (h *Handler) Refresh(c echo.Context) error {
 	var req model.RefreshRequest
@@ -98,54 +101,6 @@ func (h *Handler) Refresh(c echo.Context) error {
 		}
 	}
 	resp, err := h.service.Auth().Refresh(c.Request().Context(), req, &h.cfg.Jwt)
-	if err != nil {
-		return c.JSON(http.StatusUnauthorized, model.ErrorResponse{Message: err.Error()})
-	}
-
-	return c.JSON(http.StatusOK, resp)
-}
-
-// RegisterWithGoogle handles user registration with Google
-// @Summary User registration with Google
-// @Description Register a new user using Google and return token with user data
-// @Tags auth
-// @Accept json
-// @Produce json
-// @Param   input  body      model.GoogleAuthRequest  true  "Google auth request"
-// @Success 200 {object} model.LoginResponse
-// @Failure 400 {object} model.ErrorResponse
-// @Failure 401 {object} model.ErrorResponse
-// @Router /api/v1/auth/login/with-google [post]
-func (h *Handler) RegisterWithGoogle(c echo.Context) error {
-	req := new(model.GoogleAuthRequest)
-
-	if err := c.Bind(req); err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body"})
-	}
-	var clientId string
-	switch req.AppType {
-	case "web":
-		clientId = h.cfg.Google.WebClientId
-	case "android":
-		clientId = h.cfg.Google.AndroidClientId
-	case "ios":
-		clientId = h.cfg.Google.IOSClientId
-	default:
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid app type"})
-	}
-
-	payload, err := idtoken.Validate(context.Background(), req.IDToken, clientId)
-	if err != nil {
-		return c.JSON(http.StatusUnauthorized, map[string]string{"error": "Invalid Google ID Token"})
-	}
-	email, _ := payload.Claims["email"].(string) 
-	name, _ := payload.Claims["name"].(string)
-
-	resp, err := h.service.Auth().LoginWithEmail(c.Request().Context(), model.LoginEmailRequest{
-		Email:    email,
-		IdToken: req.IDToken,
-		FullName: name,
-	}, &h.cfg.Jwt)
 	if err != nil {
 		return c.JSON(http.StatusUnauthorized, model.ErrorResponse{Message: err.Error()})
 	}

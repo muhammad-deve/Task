@@ -97,13 +97,6 @@ definitions:
         example: error message
         type: string
     type: object
-  model.GoogleAuthRequest:
-    properties:
-      app_type:
-        type: string
-      id_token:
-        type: string
-    type: object
   model.ListDriversResponse:
     properties:
       data:
@@ -123,10 +116,10 @@ definitions:
   model.LoginRequest:
     properties:
       password:
-        example: password123
+        example: ASDF1234
         type: string
       phoneNumber:
-        example: "1234567890"
+        example: "+998901234567"
         type: string
     type: object
   model.LoginResponse:
@@ -149,6 +142,11 @@ definitions:
       total:
         type: integer
     type: object
+  model.RefreshRequest:
+    properties:
+      refreshToken:
+        type: string
+    type: object
   model.RefreshResponse:
     properties:
       accessToken:
@@ -161,9 +159,13 @@ definitions:
       fullName:
         type: string
       password:
+        example: ASDF1234
+        minLength: 8
         type: string
       phoneNumber:
         type: string
+    required:
+    - password
     type: object
   model.UpdateDriverRequest:
     properties:
@@ -185,19 +187,11 @@ definitions:
     type: object
   model.UserResponse:
     properties:
-      email:
-        type: string
       fullName:
-        type: string
-      gender:
         type: string
       id:
         type: string
-      photo:
-        type: string
-      role:
-        type: string
-      status:
+      phoneNumber:
         type: string
     type: object
   model.WorkingHoursResponse:
@@ -254,41 +248,18 @@ paths:
       summary: User login
       tags:
       - auth
-  /api/v1/auth/login/with-google:
-    post:
-      consumes:
-      - application/json
-      description: Register a new user using Google and return token with user data
-      parameters:
-      - description: Google auth request
-        in: body
-        name: input
-        required: true
-        schema:
-          $ref: '#/definitions/model.GoogleAuthRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/model.LoginResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/model.ErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/model.ErrorResponse'
-      summary: User registration with Google
-      tags:
-      - auth
   /api/v1/auth/refresh:
     post:
       consumes:
       - application/json
       description: Refresh access token using refresh token
+      parameters:
+      - description: Refresh token
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/model.RefreshRequest'
       produces:
       - application/json
       responses:
@@ -300,8 +271,6 @@ paths:
           description: Unauthorized
           schema:
             $ref: '#/definitions/model.ErrorResponse'
-      security:
-      - BearerAuth: []
       summary: Token refresh
       tags:
       - auth
@@ -309,7 +278,7 @@ paths:
     post:
       consumes:
       - application/json
-      description: Register a new user and return token with user data
+      description: Register a new user and return access token with user data
       parameters:
       - description: Registration data
         in: body
@@ -322,8 +291,14 @@ paths:
       responses:
         "201":
           description: Created
+          schema:
+            $ref: '#/definitions/model.LoginResponse'
         "400":
           description: Bad Request
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+        "409":
+          description: Conflict
           schema:
             $ref: '#/definitions/model.ErrorResponse'
       summary: User registration
@@ -727,11 +702,11 @@ securityDefinitions:
     type: apiKey
 swagger: "2.0"
 tags:
-- description: Driver management operations
-  name: drivers
-- description: Driver activity tracking and working hours
-  name: driver-activity
-- description: System health and monitoring
-  name: system
 - description: Authentication endpoints
   name: auth
+- description: Driver activity tracking and working hours
+  name: driver-activity
+- description: Driver management operations
+  name: drivers
+- description: System health and monitoring
+  name: system

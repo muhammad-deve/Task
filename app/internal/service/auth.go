@@ -28,59 +28,36 @@ func NewAuthS(cfg *config.Config, repo *repository.Repository) *AuthS {
 	}
 }
 
-func (s *AuthS) Register(ctx context.Context, req model.RegisterRequest) error {
+func (s *AuthS) Register(ctx context.Context, req model.RegisterRequest, jwtCfg *config.JwtConfig) (model.LoginResponse, error) {
 	if req.PhoneNumber == "" || req.Password == "" {
-		return errors.New(http.StatusText(http.StatusBadRequest))
+		return model.LoginResponse{}, errors.New(http.StatusText(http.StatusBadRequest))
 	}
 
 	_, err := s.repo.PgRepo.Repo.GetUserByPhoneNumber(ctx, &req.PhoneNumber)
 	if err == nil {
-		return errors.New("user already exists")
+		return model.LoginResponse{}, errors.New("user already exists")
 	}
 	if !errors.Is(err, pgx.ErrNoRows) {
-		return err
+		return model.LoginResponse{}, err
 	}
 
 	hash, err := utils.HashPassword(req.Password)
 	if err != nil {
-		return err
+		return model.LoginResponse{}, err
 	}
 
 	fullName := req.FullName
 	phoneNumber := req.PhoneNumber
-	status := "active"
 	userParams := pg.CreateUserParams{
 		ID:           uuid.NewString(),
 		PhoneNumber:  &phoneNumber,
 		FullName:     &fullName,
 		PasswordHash: &hash,
-		Status:       &status,
 	}
 
-	_, err = s.repo.PgRepo.Repo.CreateUser(ctx, userParams)
+	user, err := s.repo.PgRepo.Repo.CreateUser(ctx, userParams)
 	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (s *AuthS) Login(ctx context.Context, req model.LoginRequest, jwtCfg *config.JwtConfig) (model.LoginResponse, error) {
-	if req.PhoneNumber == "" || req.Password == "" {
-		return model.LoginResponse{}, errors.New(http.StatusText(http.StatusBadRequest))
-	}
-
-	user, err := s.repo.PgRepo.Repo.GetUserByPhoneNumber(ctx, &req.PhoneNumber)
-	if err != nil {
-		return model.LoginResponse{}, errors.New(http.StatusText(http.StatusUnauthorized))
-	}
-
-	if user.PasswordHash == nil {
-		return model.LoginResponse{}, errors.New(http.StatusText(http.StatusUnauthorized))
-	}
-
-	if err := utils.VerifyPassword(*user.PasswordHash, req.Password); err != nil {
-		return model.LoginResponse{}, errors.New(http.StatusText(http.StatusUnauthorized))
+		return model.LoginResponse{}, err
 	}
 
 	accessToken, err := utils.CreateJWT(time.Duration(jwtCfg.AccessToken.ExpiresIn)*time.Second,
@@ -89,6 +66,7 @@ func (s *AuthS) Login(ctx context.Context, req model.LoginRequest, jwtCfg *confi
 	if err != nil {
 		return model.LoginResponse{}, err
 	}
+
 	refreshToken, err := utils.CreateJWT(time.Duration(jwtCfg.RefreshToken.ExpiresIn)*time.Second,
 		user.ID,
 		jwtCfg.SecretKey)
@@ -102,55 +80,23 @@ func (s *AuthS) Login(ctx context.Context, req model.LoginRequest, jwtCfg *confi
 		User:         toUserResponse(user),
 	}, nil
 }
-func (s *AuthS) LoginWithEmail(ctx context.Context, req model.LoginEmailRequest, jwtCfg *config.JwtConfig) (model.LoginResponse, error) {
-	if req.Email == "" || req.IdToken == "" {
+
+func (s *AuthS) Login(ctx context.Context, req model.LoginRequest, jwtCfg *config.JwtConfig) (model.LoginResponse, error) {
+	if req.PhoneNumber == "" || req.Password == "" {
 		return model.LoginResponse{}, errors.New(http.StatusText(http.StatusBadRequest))
 	}
 
-	user, err := s.repo.PgRepo.Repo.GetUserByEmail(ctx, &req.Email)
-
-	if err == pgx.ErrNoRows {
-		status := "active"
-		userParams := pg.CreateUserParams{
-			ID:       uuid.NewString(),
-			Email:    &req.Email,
-			FullName: &req.FullName,
-			GoogleId: &req.IdToken,
-			Status:   &status,
-		}
-		user, err = s.repo.PgRepo.Repo.CreateUser(ctx, userParams)
-		if err != nil {
-			return model.LoginResponse{}, errors.New(http.StatusText(http.StatusUnauthorized))
-		}
-		accessToken, err := utils.CreateJWT(time.Duration(jwtCfg.AccessToken.ExpiresIn)*time.Second,
-			user.ID,
-			jwtCfg.SecretKey)
-		if err != nil {
-			return model.LoginResponse{}, err
-		}
-		refreshToken, err := utils.CreateJWT(time.Duration(jwtCfg.RefreshToken.ExpiresIn)*time.Second,
-			user.ID,
-			jwtCfg.SecretKey)
-		if err != nil {
-			return model.LoginResponse{}, err
-		}
-		return model.LoginResponse{
-			AccessToken:  accessToken,
-			RefreshToken: refreshToken,
-			User:         toUserResponse(user),
-		}, nil
-	}
+	user, err := s.repo.PgRepo.Repo.GetUserByPhoneNumber(ctx, &req.PhoneNumber)
 	if err != nil {
-		return model.LoginResponse{}, err
+		return model.LoginResponse{}, errors.New("phone number or password is incorrect")
 	}
 
-	_, err = s.repo.PgRepo.Repo.UpdateUser(ctx, pg.UpdateUserParams{
-		ID:       user.ID,
-		GoogleId: &req.IdToken,
-		FullName: &req.FullName,
-	})
-	if err != nil {
-		return model.LoginResponse{}, errors.New(http.StatusText(http.StatusUnauthorized))
+	if user.PasswordHash == nil {
+		return model.LoginResponse{}, errors.New("phone number or password is incorrect")
+	}
+
+	if err := utils.VerifyPassword(*user.PasswordHash, req.Password); err != nil {
+		return model.LoginResponse{}, errors.New("phone number or password is incorrect")
 	}
 
 	accessToken, err := utils.CreateJWT(time.Duration(jwtCfg.AccessToken.ExpiresIn)*time.Second,
@@ -211,12 +157,8 @@ func (s *AuthS) Refresh(ctx context.Context, req model.RefreshRequest, jwtCfg *c
 
 func toUserResponse(u pg.User) model.UserResponse {
 	return model.UserResponse{
-		ID:       u.ID,
-		FullName: u.FullName,
-		Email:    u.Email,
-		Role:     u.Role,
-		Gender:   u.Gender,
-		Status:   u.Status,
-		Photo:    u.Photo,
+		ID:          u.ID,
+		FullName:    u.FullName,
+		PhoneNumber: u.PhoneNumber,
 	}
 }
