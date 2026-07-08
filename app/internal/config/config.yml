@@ -15,8 +15,8 @@ server:
       debug: true
       allowed-methods: [ "GET", "POST", "PATCH", "PUT", "OPTIONS", "DELETE" ]
       allowed-origins:
-        - "http://localhost:3000"
-      allow-credentials: true
+        - "*"
+      allow-credentials: false
       allowed-headers:
         - "Authorization"
         - "Location"

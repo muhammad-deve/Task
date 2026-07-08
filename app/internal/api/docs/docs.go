@@ -1102,9 +1102,9 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
-	Host:             "localhost:8080",
+	Host:             "task.goport.uz",
 	BasePath:         "/",
-	Schemes:          []string{"http", "https"},
+	Schemes:          []string{"https", "http"},
 	Title:            "Driver Registry Service API",
 	Description:      "Taxi driver management service with CRUD operations and activity tracking",
 	InfoInstanceName: "swagger",

@@ -205,7 +205,7 @@ definitions:
       total_hours:
         type: number
     type: object
-host: localhost:8080
+host: task.goport.uz
 info:
   contact:
     email: support@example.com
@@ -692,8 +692,8 @@ paths:
       tags:
       - system
 schemes:
-- http
 - https
+- http
 securityDefinitions:
   BearerAuth:
     description: Type "Bearer" followed by a space and JWT token.
