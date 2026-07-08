@@ -5,13 +5,38 @@ Taxi driver management service built with Go, PostgreSQL, and Echo framework.
 ## Quick Start
 
 ### Requirements
-- Docker & Docker Compose
-- Go 1.22+ (for local development)
+- Docker & Docker Compose (recommended)
+- OR Go 1.22+ (for local development)
 
-### Running the Service
+### Option 1: Run with Docker (Recommended)
+
+The easiest way to run the entire stack:
 
 ```bash
+# Copy environment file
+cp app/.env.example app/.env
+
+# Start all services (app + postgres + redis + minio)
+docker compose up -d
+
+# View logs
+docker compose logs -f app
+
+# Stop all services
+docker compose down
+```
+
+The service will start on `http://localhost:8080`
+
+### Option 2: Run Locally (Development)
+
+Start only infrastructure services, run app locally:
+
+```bash
+# Start infrastructure (postgres, redis, minio, prometheus, grafana)
 docker compose -f docker-compose.local-infra.yml up -d
+
+# Run the application
 cd app
 go run cmd/main.go
 ```
@@ -22,6 +47,9 @@ The service will start on `http://localhost:8080`
 - **Health**: `http://localhost:8080/healthz`
 - **Swagger UI**: `http://localhost:8080/swagger/index.html` 📚
 - **Metrics**: `http://localhost:8080/metrics`
+- **MinIO Console**: `http://localhost:9003` (ports 9002/9003 to avoid conflicts)
+
+> **Note**: MinIO is mapped to ports 9002/9003 instead of the default 9000/9001 to avoid conflicts with other services you might be running.
 
 ### API Documentation
 
@@ -221,6 +249,34 @@ Status statistics are useful for operations dashboards and support workflows whi
 - Documentation: 30 minutes
 
 **Total: ~5 hours**
+
+## Docker Commands Quick Reference
+
+```bash
+# Start all services
+docker compose up -d
+
+# Stop all services
+docker compose down
+
+# View logs
+docker compose logs -f
+
+# View app logs only
+docker compose logs -f app
+
+# Restart app only
+docker compose restart app
+
+# Rebuild and restart app
+docker compose up -d --build app
+
+# Check service health
+docker compose ps
+
+# Stop and remove all data (including volumes)
+docker compose down -v
+```
 
 ## Testing
 
