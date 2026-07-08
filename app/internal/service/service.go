@@ -21,10 +21,7 @@ type DriverI interface {
 	UpdateDriver(ctx context.Context, id string, req model.UpdateDriverRequest) (model.DriverResponse, error)
 	UpdateDriverStatus(ctx context.Context, id string, req model.UpdateStatusRequest) (model.DriverResponse, error)
 	DeleteDriver(ctx context.Context, id string) error
-	LogActivity(ctx context.Context, driverID string, req model.LogActivityRequest) (model.ActivityLogResponse, error)
-	GetActivityLog(ctx context.Context, driverID string, page, limit int) ([]model.ActivityLogResponse, error)
-	GetWorkingHours(ctx context.Context, driverID, startDate, endDate string) (model.WorkingHoursResponse, error)
-	GetActiveDriversStats(ctx context.Context) (model.ActiveDriversStatsResponse, error)
+	GetActiveDriversStats(ctx context.Context, status string) (model.ActiveDriversStatsResponse, error)
 }
 
 type I interface {

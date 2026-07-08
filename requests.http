@@ -46,32 +46,8 @@ Content-Type: application/json
 ### Delete Driver (Soft Delete)
 DELETE http://localhost:8080/api/v1/drivers/{{driver_id}}
 
-### Log Driver Activity - Go Online
-POST http://localhost:8080/api/v1/drivers/{{driver_id}}/activity
-Content-Type: application/json
-
-{
-  "action": "went_online",
-  "notes": "Started shift at downtown station"
-}
-
-### Log Driver Activity - Go Offline
-POST http://localhost:8080/api/v1/drivers/{{driver_id}}/activity
-Content-Type: application/json
-
-{
-  "action": "went_offline",
-  "notes": "End of shift"
-}
-
-### Get Driver Activity Log
-GET http://localhost:8080/api/v1/drivers/{{driver_id}}/activity?page=1&limit=20
-
-### Get Driver Working Hours
-GET http://localhost:8080/api/v1/drivers/{{driver_id}}/working-hours?start_date=2024-01-01&end_date=2024-01-31
-
-### Get Active Drivers Statistics
-GET http://localhost:8080/api/v1/drivers/stats/active
+### Get Driver Status Statistics
+GET http://localhost:8080/api/v1/drivers/stats/active?status=blocked
 
 ### Error Cases
 

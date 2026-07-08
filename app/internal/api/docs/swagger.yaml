@@ -9,29 +9,10 @@ definitions:
     type: object
   model.ActiveDriversStatsResponse:
     properties:
-      active_count:
+      count:
         type: integer
-    type: object
-  model.ActivityAction:
-    enum:
-    - went_online
-    - went_offline
-    type: string
-    x-enum-varnames:
-    - ActionWentOnline
-    - ActionWentOffline
-  model.ActivityLogResponse:
-    properties:
-      action:
-        $ref: '#/definitions/model.ActivityAction'
-      driver_id:
-        type: string
-      id:
-        type: string
-      notes:
-        type: string
-      timestamp:
-        type: string
+      status:
+        $ref: '#/definitions/model.DriverStatus'
     type: object
   model.CreateDriverRequest:
     properties:
@@ -105,13 +86,6 @@ definitions:
         type: array
       meta:
         $ref: '#/definitions/model.PaginationMeta'
-    type: object
-  model.LogActivityRequest:
-    properties:
-      action:
-        $ref: '#/definitions/model.ActivityAction'
-      notes:
-        type: string
     type: object
   model.LoginRequest:
     properties:
@@ -194,23 +168,12 @@ definitions:
       phoneNumber:
         type: string
     type: object
-  model.WorkingHoursResponse:
-    properties:
-      driver_id:
-        type: string
-      period_end:
-        type: string
-      period_start:
-        type: string
-      total_hours:
-        type: number
-    type: object
 host: task.goport.uz
 info:
   contact:
     email: support@example.com
     name: API Support
-  description: Taxi driver management service with CRUD operations and activity tracking
+  description: Taxi driver management service with CRUD operations and status statistics
   license:
     name: MIT
     url: https://opensource.org/licenses/MIT
@@ -341,6 +304,10 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/model.DriverErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
@@ -372,6 +339,10 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/model.DriverErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
         "409":
           description: Conflict
           schema:
@@ -401,6 +372,10 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/model.DriverErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
         "404":
           description: Not Found
           schema:
@@ -433,6 +408,10 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/model.DriverErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
         "404":
           description: Not Found
           schema:
@@ -473,6 +452,10 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/model.DriverErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
         "404":
           description: Not Found
           schema:
@@ -490,91 +473,6 @@ paths:
       summary: Update driver information
       tags:
       - drivers
-  /api/v1/drivers/{id}/activity:
-    get:
-      description: Get paginated history of driver online/offline activities
-      parameters:
-      - description: Driver ID (UUID)
-        in: path
-        name: id
-        required: true
-        type: string
-      - default: 1
-        description: Page number
-        in: query
-        name: page
-        type: integer
-      - default: 20
-        description: Items per page
-        in: query
-        name: limit
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              $ref: '#/definitions/model.ActivityLogResponse'
-            type: array
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/model.DriverErrorResponse'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/model.DriverErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/model.DriverErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: Get driver activity log
-      tags:
-      - driver-activity
-    post:
-      consumes:
-      - application/json
-      description: Log when a driver goes online or offline
-      parameters:
-      - description: Driver ID (UUID)
-        in: path
-        name: id
-        required: true
-        type: string
-      - description: Activity information
-        in: body
-        name: activity
-        required: true
-        schema:
-          $ref: '#/definitions/model.LogActivityRequest'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/model.ActivityLogResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/model.DriverErrorResponse'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/model.DriverErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/model.DriverErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: Log driver activity
-      tags:
-      - driver-activity
   /api/v1/drivers/{id}/status:
     patch:
       consumes:
@@ -603,6 +501,10 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/model.DriverErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
         "404":
           description: Not Found
           schema:
@@ -616,52 +518,19 @@ paths:
       summary: Update driver status
       tags:
       - drivers
-  /api/v1/drivers/{id}/working-hours:
-    get:
-      description: Calculate total working hours for a driver within a date range
-      parameters:
-      - description: Driver ID (UUID)
-        in: path
-        name: id
-        required: true
-        type: string
-      - description: Start date (YYYY-MM-DD)
-        in: query
-        name: start_date
-        required: true
-        type: string
-      - description: End date (YYYY-MM-DD)
-        in: query
-        name: end_date
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/model.WorkingHoursResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/model.DriverErrorResponse'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/model.DriverErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/model.DriverErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: Get driver working hours
-      tags:
-      - driver-activity
   /api/v1/drivers/stats/active:
     get:
-      description: Get count of currently active drivers
+      description: Get count of drivers by status
+      parameters:
+      - default: active
+        description: Driver status
+        enum:
+        - active
+        - inactive
+        - blocked
+        in: query
+        name: status
+        type: string
       produces:
       - application/json
       responses:
@@ -669,15 +538,23 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/model.ActiveDriversStatsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/model.DriverErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
             $ref: '#/definitions/model.DriverErrorResponse'
       security:
       - BearerAuth: []
-      summary: Get active drivers statistics
+      summary: Get driver status statistics
       tags:
-      - driver-activity
+      - drivers
   /healthz:
     get:
       description: Check service health and database connectivity
@@ -708,8 +585,6 @@ swagger: "2.0"
 tags:
 - description: Authentication endpoints
   name: auth
-- description: Driver activity tracking and working hours
-  name: driver-activity
 - description: Driver management operations
   name: drivers
 - description: System health and monitoring

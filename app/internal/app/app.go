@@ -26,7 +26,7 @@ import (
 
 // @title Driver Registry Service API
 // @version 1.0
-// @description Taxi driver management service with CRUD operations and activity tracking
+// @description Taxi driver management service with CRUD operations and status statistics
 // @termsOfService http://swagger.io/terms/
 
 // @contact.name API Support
@@ -46,9 +46,6 @@ import (
 
 // @tag.name auth
 // @tag.description Authentication endpoints
-
-// @tag.name driver-activity
-// @tag.description Driver activity tracking and working hours
 
 // @tag.name drivers
 // @tag.description Driver management operations

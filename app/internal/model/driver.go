@@ -63,33 +63,7 @@ type ErrorDetail struct {
 	Message string `json:"message"`
 }
 
-type ActivityAction string
-
-const (
-	ActionWentOnline  ActivityAction = "went_online"
-	ActionWentOffline ActivityAction = "went_offline"
-)
-
-type LogActivityRequest struct {
-	Action ActivityAction `json:"action"`
-	Notes  *string        `json:"notes"`
-}
-
-type ActivityLogResponse struct {
-	ID        string         `json:"id"`
-	DriverID  string         `json:"driver_id"`
-	Action    ActivityAction `json:"action"`
-	Timestamp time.Time      `json:"timestamp"`
-	Notes     *string        `json:"notes,omitempty"`
-}
-
-type WorkingHoursResponse struct {
-	DriverID    string  `json:"driver_id"`
-	TotalHours  float64 `json:"total_hours"`
-	PeriodStart string  `json:"period_start"`
-	PeriodEnd   string  `json:"period_end"`
-}
-
 type ActiveDriversStatsResponse struct {
-	ActiveCount int `json:"active_count"`
+	Status DriverStatus `json:"status"`
+	Count  int          `json:"count"`
 }

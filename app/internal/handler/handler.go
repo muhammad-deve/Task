@@ -43,9 +43,6 @@ func (h *Handler) Register(router *echo.Echo) {
 			drivers.PATCH("/:id", h.UpdateDriver)
 			drivers.DELETE("/:id", h.DeleteDriver)
 			drivers.PATCH("/:id/status", h.UpdateDriverStatus)
-			drivers.POST("/:id/activity", h.LogDriverActivity)
-			drivers.GET("/:id/activity", h.GetDriverActivityLog)
-			drivers.GET("/:id/working-hours", h.GetDriverWorkingHours)
 		}
 	}
 

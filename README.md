@@ -100,33 +100,10 @@ curl -X PATCH http://localhost:8080/api/v1/drivers/{id}/status \
 curl -X DELETE http://localhost:8080/api/v1/drivers/{id}
 ```
 
-### Log Driver Activity
+### Get Driver Status Statistics
 
 ```bash
-curl -X POST http://localhost:8080/api/v1/drivers/{id}/activity \
-  -H "Content-Type: application/json" \
-  -d '{
-    "action": "went_online",
-    "notes": "Started shift at downtown station"
-  }'
-```
-
-### Get Driver Activity Log
-
-```bash
-curl "http://localhost:8080/api/v1/drivers/{id}/activity?page=1&limit=20"
-```
-
-### Get Driver Working Hours
-
-```bash
-curl "http://localhost:8080/api/v1/drivers/{id}/working-hours?start_date=2024-01-01&end_date=2024-01-31"
-```
-
-### Get Active Drivers Statistics
-
-```bash
-curl http://localhost:8080/api/v1/drivers/stats/active
+curl "http://localhost:8080/api/v1/drivers/stats/active?status=blocked"
 ```
 
 ### Health Check
@@ -175,49 +152,45 @@ The project follows clean architecture principles with clear separation of conce
 
 ## Mening G'oyam (My Custom Feature)
 
-### Driver Activity Tracking
+### Driver Status Statistics
 
-I added a driver activity tracking system that logs when drivers go online/offline and calculates their working hours.
+I added a driver status statistics endpoint that counts drivers by operational status.
 
 **Why This is Useful:**
 
 In real taxi operations, companies need to:
-- Track driver availability in real-time
-- Calculate working hours for payroll and compliance
-- Analyze driver activity patterns (peak hours, shift lengths)
-- Monitor service coverage across time periods
+- See how many drivers are active, inactive, or blocked
+- Monitor blocked driver volume for operations and support follow-up
+- Build simple dashboard counters without fetching the full driver list
 
 **Implementation:**
 
-- `driver_activity_log` table stores timestamped online/offline events
-- Working hours calculated using SQL window functions (LEAD) to pair online/offline events
-- Active drivers count determined by finding the latest activity status for each driver
-- Activity log provides audit trail for dispute resolution
+- `GET /api/v1/drivers/stats/active?status={status}` accepts `active`, `inactive`, or `blocked`
+- The endpoint counts non-deleted drivers with the requested status
+- Empty status defaults to `active`
 
 **API Endpoints:**
 
-1. `POST /api/v1/drivers/{id}/activity` - Log online/offline event
-2. `GET /api/v1/drivers/{id}/activity` - View activity history
-3. `GET /api/v1/drivers/{id}/working-hours` - Calculate hours for date range
-4. `GET /api/v1/drivers/stats/active` - Get currently active driver count
+1. `GET /api/v1/drivers/stats/active?status=active` - Count active drivers
+2. `GET /api/v1/drivers/stats/active?status=inactive` - Count inactive drivers
+3. `GET /api/v1/drivers/stats/active?status=blocked` - Count blocked drivers
 
 **Future Enhancements:**
 
 - Real-time dashboard for dispatch monitoring
-- Automated shift reports via email
-- Overtime alerts when drivers exceed configured limits
-- Geolocation tracking integrated with activity logs
-- Predictive analytics for driver availability forecasting
+- Status transition history
+- Alerts when blocked driver count exceeds a configured threshold
+- Per-day status trend reporting
 
 **Why I Chose This:**
 
-Activity tracking is a fundamental operational need for taxi companies but wasn't in the requirements. It demonstrates understanding of the domain and adds immediate business value without overcomplicating the core CRUD functionality.
+Status statistics are useful for operations dashboards and support workflows while keeping the API small and focused.
 
 ## Trade-offs & Simplifications
 
 **What I Simplified:**
 
-1. **Authentication**: No auth required for MVP. In production, would add JWT middleware for all driver endpoints.
+1. **Authentication**: JWT middleware protects driver endpoints. Role-based permissions are not implemented.
 
 2. **Rate Limiting**: Basic memory-based rate limiter. Production should use Redis for distributed rate limiting.
 
@@ -225,9 +198,7 @@ Activity tracking is a fundamental operational need for taxi companies but wasn'
 
 4. **Search**: Simple ILIKE search. For larger scale, would implement full-text search with PostgreSQL tsvector or external search engine.
 
-5. **Activity Tracking**: Simplified calculation assumes paired online/offline events. Production should handle edge cases like missing offline events.
-
-6. **Metrics**: Basic Prometheus metrics. Production would add custom business metrics (active drivers, average session duration, etc.).
+5. **Metrics**: Basic Prometheus metrics. Production would add custom business metrics such as status counts and request error rates.
 
 **What I Kept Production-Ready:**
 

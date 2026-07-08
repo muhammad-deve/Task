@@ -60,16 +60,18 @@ func LoginRateLimiter() echo.MiddlewareFunc {
 	})
 }
 
-// CheckAuth is an auth middleware that validates JWT access token and sets user_id in context.
-// It looks for token in Authorization: Bearer header first, then in "access_token" cookie.
+// CheckAuth validates a JWT access token and sets user_id in context.
+// It accepts Authorization: Bearer <token> and Authorization: <token>.
 func CheckAuth(cfg *config.Config) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			var accessToken string
 
-			authHeader := c.Request().Header.Get("Authorization")
+			authHeader := strings.TrimSpace(c.Request().Header.Get("Authorization"))
 			fields := strings.Fields(authHeader)
-			if len(fields) == 2 && strings.EqualFold(fields[0], "Bearer") {
+			if len(fields) == 1 {
+				accessToken = fields[0]
+			} else if len(fields) == 2 && strings.EqualFold(fields[0], "Bearer") {
 				accessToken = fields[1]
 			}
 

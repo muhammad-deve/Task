@@ -22,14 +22,6 @@ type Driver struct {
 	DeletedAt     pgtype.Timestamp `json:"deleted_at"`
 }
 
-type DriverActivityLog struct {
-	ID        uuid.UUID        `json:"id"`
-	DriverID  uuid.UUID        `json:"driver_id"`
-	Action    string           `json:"action"`
-	Timestamp pgtype.Timestamp `json:"timestamp"`
-	Notes     *string          `json:"notes"`
-}
-
 type User struct {
 	ID           string           `json:"id"`
 	FullName     *string          `json:"fullName"`

@@ -6,11 +6,9 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
-	"time"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgtype"
 	"gitlab.yurtal.tech/company/blitz/back/internal/config"
 	"gitlab.yurtal.tech/company/blitz/back/internal/model"
 	"gitlab.yurtal.tech/company/blitz/back/internal/repository"
@@ -391,142 +389,26 @@ func NewAppError(code, message string) AppError {
 	}
 }
 
-func (s *DriverService) LogActivity(ctx context.Context, driverID string, req model.LogActivityRequest) (model.ActivityLogResponse, error) {
-	id, err := uuid.Parse(driverID)
-	if err != nil {
-		return model.ActivityLogResponse{}, NewAppError("INVALID_ID", "invalid driver id format")
+func (s *DriverService) GetActiveDriversStats(ctx context.Context, status string) (model.ActiveDriversStatsResponse, error) {
+	status = strings.TrimSpace(status)
+	if status == "" {
+		status = string(model.StatusActive)
+	}
+	if !isValidStatus(status) {
+		return model.ActiveDriversStatsResponse{}, NewAppError("INVALID_STATUS", "status must be one of: active, inactive, blocked")
 	}
 
-	_, err = s.repo.PgRepo.Repo.GetDriverByID(ctx, id)
-	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return model.ActivityLogResponse{}, NewAppError("DRIVER_NOT_FOUND", fmt.Sprintf("driver with id %s not found", driverID))
-		}
-		return model.ActivityLogResponse{}, fmt.Errorf("failed to get driver: %w", err)
-	}
-
-	if req.Action != model.ActionWentOnline && req.Action != model.ActionWentOffline {
-		return model.ActivityLogResponse{}, NewAppError("VALIDATION_ERROR", "action must be went_online or went_offline")
-	}
-
-	var notes *string
-	if req.Notes != nil {
-		notes = req.Notes
-	}
-
-	activity, err := s.repo.PgRepo.Repo.LogDriverActivity(ctx, pg.LogDriverActivityParams{
-		DriverID: id,
-		Action:   string(req.Action),
-		Notes:    notes,
+	count, err := s.repo.PgRepo.Repo.CountDrivers(ctx, pg.CountDriversParams{
+		Column1: status,
+		Column2: "",
 	})
 	if err != nil {
-		return model.ActivityLogResponse{}, fmt.Errorf("failed to log activity: %w", err)
+		return model.ActiveDriversStatsResponse{}, fmt.Errorf("failed to get drivers count by status: %w", err)
 	}
 
-	return s.toActivityLogResponse(activity), nil
-}
-
-func (s *DriverService) GetActivityLog(ctx context.Context, driverID string, page, limit int) ([]model.ActivityLogResponse, error) {
-	id, err := uuid.Parse(driverID)
-	if err != nil {
-		return nil, NewAppError("INVALID_ID", "invalid driver id format")
-	}
-
-	if page < 1 {
-		page = 1
-	}
-	if limit < 1 {
-		limit = 20
-	}
-	if limit > 100 {
-		limit = 100
-	}
-
-	offset := (page - 1) * limit
-
-	activities, err := s.repo.PgRepo.Repo.GetDriverActivityLog(ctx, pg.GetDriverActivityLogParams{
-		DriverID: id,
-		Limit:    int32(limit),
-		Offset:   int32(offset),
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to get activity log: %w", err)
-	}
-
-	response := make([]model.ActivityLogResponse, 0, len(activities))
-	for _, activity := range activities {
-		response = append(response, s.toActivityLogResponse(activity))
-	}
-
-	return response, nil
-}
-
-func (s *DriverService) GetWorkingHours(ctx context.Context, driverID, startDate, endDate string) (model.WorkingHoursResponse, error) {
-	id, err := uuid.Parse(driverID)
-	if err != nil {
-		return model.WorkingHoursResponse{}, NewAppError("INVALID_ID", "invalid driver id format")
-	}
-
-	start, err := parseDate(startDate)
-	if err != nil {
-		return model.WorkingHoursResponse{}, NewAppError("VALIDATION_ERROR", "invalid start_date format, use YYYY-MM-DD")
-	}
-
-	end, err := parseDate(endDate)
-	if err != nil {
-		return model.WorkingHoursResponse{}, NewAppError("VALIDATION_ERROR", "invalid end_date format, use YYYY-MM-DD")
-	}
-
-	totalSecondsRaw, err := s.repo.PgRepo.Repo.GetDriverWorkingHours(ctx, pg.GetDriverWorkingHoursParams{
-		DriverID:    id,
-		Timestamp:   pgtype.Timestamp{Time: start, Valid: true},
-		Timestamp_2: pgtype.Timestamp{Time: end.Add(24 * time.Hour), Valid: true},
-	})
-	if err != nil {
-		return model.WorkingHoursResponse{}, fmt.Errorf("failed to get working hours: %w", err)
-	}
-
-	var totalSeconds float64
-	switch v := totalSecondsRaw.(type) {
-	case float64:
-		totalSeconds = v
-	case int64:
-		totalSeconds = float64(v)
-	default:
-		totalSeconds = 0
-	}
-
-	hours := totalSeconds / 3600.0
-
-	return model.WorkingHoursResponse{
-		DriverID:    driverID,
-		TotalHours:  hours,
-		PeriodStart: startDate,
-		PeriodEnd:   endDate,
-	}, nil
-}
-
-func (s *DriverService) GetActiveDriversStats(ctx context.Context) (model.ActiveDriversStatsResponse, error) {
-	count, err := s.repo.PgRepo.Repo.GetActiveDriversCount(ctx)
-	if err != nil {
-		return model.ActiveDriversStatsResponse{}, fmt.Errorf("failed to get active drivers count: %w", err)
-	}
-
+	countInt := int(count)
 	return model.ActiveDriversStatsResponse{
-		ActiveCount: int(count),
+		Status: model.DriverStatus(status),
+		Count:  countInt,
 	}, nil
-}
-
-func (s *DriverService) toActivityLogResponse(activity pg.DriverActivityLog) model.ActivityLogResponse {
-	return model.ActivityLogResponse{
-		ID:        activity.ID.String(),
-		DriverID:  activity.DriverID.String(),
-		Action:    model.ActivityAction(activity.Action),
-		Timestamp: activity.Timestamp.Time,
-		Notes:     activity.Notes,
-	}
-}
-
-func parseDate(dateStr string) (time.Time, error) {
-	return time.Parse("2006-01-02", dateStr)
 }

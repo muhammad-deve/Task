@@ -216,6 +216,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/model.DriverErrorResponse"
                         }
                     },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/model.ErrorResponse"
+                        }
+                    },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
@@ -265,6 +271,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/model.DriverErrorResponse"
                         }
                     },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/model.ErrorResponse"
+                        }
+                    },
                     "409": {
                         "description": "Conflict",
                         "schema": {
@@ -287,19 +299,45 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Get count of currently active drivers",
+                "description": "Get count of drivers by status",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "driver-activity"
+                    "drivers"
                 ],
-                "summary": "Get active drivers statistics",
+                "summary": "Get driver status statistics",
+                "parameters": [
+                    {
+                        "enum": [
+                            "active",
+                            "inactive",
+                            "blocked"
+                        ],
+                        "type": "string",
+                        "default": "active",
+                        "description": "Driver status",
+                        "name": "status",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/model.ActiveDriversStatsResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/model.DriverErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/model.ErrorResponse"
                         }
                     },
                     "500": {
@@ -348,6 +386,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/model.DriverErrorResponse"
                         }
                     },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/model.ErrorResponse"
+                        }
+                    },
                     "404": {
                         "description": "Not Found",
                         "schema": {
@@ -390,6 +434,12 @@ const docTemplate = `{
                         "description": "Bad Request",
                         "schema": {
                             "$ref": "#/definitions/model.DriverErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/model.ErrorResponse"
                         }
                     },
                     "404": {
@@ -454,6 +504,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/model.DriverErrorResponse"
                         }
                     },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/model.ErrorResponse"
+                        }
+                    },
                     "404": {
                         "description": "Not Found",
                         "schema": {
@@ -462,137 +518,6 @@ const docTemplate = `{
                     },
                     "409": {
                         "description": "Conflict",
-                        "schema": {
-                            "$ref": "#/definitions/model.DriverErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/model.DriverErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/drivers/{id}/activity": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Get paginated history of driver online/offline activities",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "driver-activity"
-                ],
-                "summary": "Get driver activity log",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Driver ID (UUID)",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "default": 1,
-                        "description": "Page number",
-                        "name": "page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "default": 20,
-                        "description": "Items per page",
-                        "name": "limit",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/model.ActivityLogResponse"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/model.DriverErrorResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/model.DriverErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/model.DriverErrorResponse"
-                        }
-                    }
-                }
-            },
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Log when a driver goes online or offline",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "driver-activity"
-                ],
-                "summary": "Log driver activity",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Driver ID (UUID)",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Activity information",
-                        "name": "activity",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/model.LogActivityRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created",
-                        "schema": {
-                            "$ref": "#/definitions/model.ActivityLogResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/model.DriverErrorResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
                         "schema": {
                             "$ref": "#/definitions/model.DriverErrorResponse"
                         }
@@ -655,70 +580,10 @@ const docTemplate = `{
                             "$ref": "#/definitions/model.DriverErrorResponse"
                         }
                     },
-                    "404": {
-                        "description": "Not Found",
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/model.DriverErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/model.DriverErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/drivers/{id}/working-hours": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Calculate total working hours for a driver within a date range",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "driver-activity"
-                ],
-                "summary": "Get driver working hours",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Driver ID (UUID)",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Start date (YYYY-MM-DD)",
-                        "name": "start_date",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "End date (YYYY-MM-DD)",
-                        "name": "end_date",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/model.WorkingHoursResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/model.DriverErrorResponse"
+                            "$ref": "#/definitions/model.ErrorResponse"
                         }
                     },
                     "404": {
@@ -778,39 +643,11 @@ const docTemplate = `{
         "model.ActiveDriversStatsResponse": {
             "type": "object",
             "properties": {
-                "active_count": {
+                "count": {
                     "type": "integer"
-                }
-            }
-        },
-        "model.ActivityAction": {
-            "type": "string",
-            "enum": [
-                "went_online",
-                "went_offline"
-            ],
-            "x-enum-varnames": [
-                "ActionWentOnline",
-                "ActionWentOffline"
-            ]
-        },
-        "model.ActivityLogResponse": {
-            "type": "object",
-            "properties": {
-                "action": {
-                    "$ref": "#/definitions/model.ActivityAction"
                 },
-                "driver_id": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "notes": {
-                    "type": "string"
-                },
-                "timestamp": {
-                    "type": "string"
+                "status": {
+                    "$ref": "#/definitions/model.DriverStatus"
                 }
             }
         },
@@ -921,17 +758,6 @@ const docTemplate = `{
                 },
                 "meta": {
                     "$ref": "#/definitions/model.PaginationMeta"
-                }
-            }
-        },
-        "model.LogActivityRequest": {
-            "type": "object",
-            "properties": {
-                "action": {
-                    "$ref": "#/definitions/model.ActivityAction"
-                },
-                "notes": {
-                    "type": "string"
                 }
             }
         },
@@ -1057,23 +883,6 @@ const docTemplate = `{
                     "type": "string"
                 }
             }
-        },
-        "model.WorkingHoursResponse": {
-            "type": "object",
-            "properties": {
-                "driver_id": {
-                    "type": "string"
-                },
-                "period_end": {
-                    "type": "string"
-                },
-                "period_start": {
-                    "type": "string"
-                },
-                "total_hours": {
-                    "type": "number"
-                }
-            }
         }
     },
     "securityDefinitions": {
@@ -1088,10 +897,6 @@ const docTemplate = `{
         {
             "description": "Authentication endpoints",
             "name": "auth"
-        },
-        {
-            "description": "Driver activity tracking and working hours",
-            "name": "driver-activity"
         },
         {
             "description": "Driver management operations",
@@ -1111,7 +916,7 @@ var SwaggerInfo = &swag.Spec{
 	BasePath:         "/",
 	Schemes:          []string{"https", "http"},
 	Title:            "Driver Registry Service API",
-	Description:      "Taxi driver management service with CRUD operations and activity tracking",
+	Description:      "Taxi driver management service with CRUD operations and status statistics",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",
