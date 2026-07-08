@@ -632,6 +632,9 @@ const docTemplate = `{
         "handler.HealthResponse": {
             "type": "object",
             "properties": {
+                "code": {
+                    "type": "integer"
+                },
                 "db": {
                     "type": "string"
                 },
@@ -643,6 +646,9 @@ const docTemplate = `{
         "model.ActiveDriversStatsResponse": {
             "type": "object",
             "properties": {
+                "code": {
+                    "type": "integer"
+                },
                 "count": {
                     "type": "integer"
                 },
@@ -691,6 +697,9 @@ const docTemplate = `{
                 "car_plate": {
                     "type": "string"
                 },
+                "code": {
+                    "type": "integer"
+                },
                 "created_at": {
                     "type": "string"
                 },
@@ -731,7 +740,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "code": {
-                    "type": "string"
+                    "type": "integer"
                 },
                 "message": {
                     "type": "string"
@@ -741,15 +750,22 @@ const docTemplate = `{
         "model.ErrorResponse": {
             "type": "object",
             "properties": {
+                "code": {
+                    "type": "integer",
+                    "example": 401
+                },
                 "message": {
                     "type": "string",
-                    "example": "error message"
+                    "example": "phone number or password is incorrect"
                 }
             }
         },
         "model.ListDriversResponse": {
             "type": "object",
             "properties": {
+                "code": {
+                    "type": "integer"
+                },
                 "data": {
                     "type": "array",
                     "items": {
@@ -780,6 +796,14 @@ const docTemplate = `{
                 "accessToken": {
                     "type": "string",
                     "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                },
+                "code": {
+                    "type": "integer",
+                    "example": 200
+                },
+                "message": {
+                    "type": "string",
+                    "example": "login successful"
                 },
                 "refreshToken": {
                     "type": "string",
@@ -817,6 +841,14 @@ const docTemplate = `{
             "properties": {
                 "accessToken": {
                     "type": "string"
+                },
+                "code": {
+                    "type": "integer",
+                    "example": 200
+                },
+                "message": {
+                    "type": "string",
+                    "example": "token refreshed successfully"
                 },
                 "refreshToken": {
                     "type": "string"

@@ -14,6 +14,8 @@ type LoginRequest struct {
 
 // LoginResponse represents successful login response
 type LoginResponse struct {
+	Code         int          `json:"code" example:"200"`
+	Message      string       `json:"message,omitempty" example:"login successful"`
 	AccessToken  string       `json:"accessToken" example:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."`
 	RefreshToken string       `json:"refreshToken" example:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."`
 	User         UserResponse `json:"user"`
@@ -21,7 +23,8 @@ type LoginResponse struct {
 
 // ErrorResponse represents an error response
 type ErrorResponse struct {
-	Message string `json:"message" example:"error message"`
+	Code    int    `json:"code" example:"401"`
+	Message string `json:"message" example:"phone number or password is incorrect"`
 }
 
 // RegisterRequest represents registration request body
@@ -47,9 +50,13 @@ type LogoutRequest struct {
 }
 
 type RefreshResponse struct {
+	Code         int    `json:"code" example:"200"`
+	Message      string `json:"message,omitempty" example:"token refreshed successfully"`
 	AccessToken  string `json:"accessToken"`
 	RefreshToken string `json:"refreshToken"`
 }
+
 type LogoutResponse struct {
+	Code    int    `json:"code" example:"200"`
 	Message string `json:"message"`
 }

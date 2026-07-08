@@ -2,6 +2,8 @@ basePath: /
 definitions:
   handler.HealthResponse:
     properties:
+      code:
+        type: integer
       db:
         type: string
       status:
@@ -9,6 +11,8 @@ definitions:
     type: object
   model.ActiveDriversStatsResponse:
     properties:
+      code:
+        type: integer
       count:
         type: integer
       status:
@@ -40,6 +44,8 @@ definitions:
         type: string
       car_plate:
         type: string
+      code:
+        type: integer
       created_at:
         type: string
       full_name:
@@ -68,18 +74,23 @@ definitions:
   model.ErrorDetail:
     properties:
       code:
-        type: string
+        type: integer
       message:
         type: string
     type: object
   model.ErrorResponse:
     properties:
+      code:
+        example: 401
+        type: integer
       message:
-        example: error message
+        example: phone number or password is incorrect
         type: string
     type: object
   model.ListDriversResponse:
     properties:
+      code:
+        type: integer
       data:
         items:
           $ref: '#/definitions/model.DriverResponse'
@@ -100,6 +111,12 @@ definitions:
     properties:
       accessToken:
         example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        type: string
+      code:
+        example: 200
+        type: integer
+      message:
+        example: login successful
         type: string
       refreshToken:
         example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
@@ -124,6 +141,12 @@ definitions:
   model.RefreshResponse:
     properties:
       accessToken:
+        type: string
+      code:
+        example: 200
+        type: integer
+      message:
+        example: token refreshed successfully
         type: string
       refreshToken:
         type: string

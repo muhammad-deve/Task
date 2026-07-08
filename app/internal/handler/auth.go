@@ -24,19 +24,29 @@ func (h *Handler) Login(c echo.Context) error {
 		if r, ok := v.(model.LoginRequest); ok {
 			req = r
 		} else {
-			return c.JSON(http.StatusBadRequest, model.ErrorResponse{Message: "invalid request body"})
+			return c.JSON(http.StatusBadRequest, model.ErrorResponse{
+				Code:    http.StatusBadRequest,
+				Message: "invalid request body",
+			})
 		}
 	} else {
 		if err := c.Bind(&req); err != nil {
-			return c.JSON(http.StatusBadRequest, model.ErrorResponse{Message: "invalid request body"})
+			return c.JSON(http.StatusBadRequest, model.ErrorResponse{
+				Code:    http.StatusBadRequest,
+				Message: "invalid request body",
+			})
 		}
 	}
 
 	resp, err := h.service.Auth().Login(c.Request().Context(), req, &h.cfg.Jwt)
 	if err != nil {
-		return c.JSON(http.StatusUnauthorized, model.ErrorResponse{Message: err.Error()})
+		return c.JSON(http.StatusUnauthorized, model.ErrorResponse{
+			Code:    http.StatusUnauthorized,
+			Message: err.Error(),
+		})
 	}
 
+	resp.Code = http.StatusOK
 	return c.JSON(http.StatusOK, resp)
 }
 
@@ -57,11 +67,17 @@ func (h *Handler) RegisterUser(c echo.Context) error {
 		if r, ok := v.(model.RegisterRequest); ok {
 			req = r
 		} else {
-			return c.JSON(http.StatusBadRequest, model.ErrorResponse{Message: "invalid request body"})
+			return c.JSON(http.StatusBadRequest, model.ErrorResponse{
+				Code:    http.StatusBadRequest,
+				Message: "invalid request body",
+			})
 		}
 	} else {
 		if err := c.Bind(&req); err != nil {
-			return c.JSON(http.StatusBadRequest, model.ErrorResponse{Message: "invalid request body"})
+			return c.JSON(http.StatusBadRequest, model.ErrorResponse{
+				Code:    http.StatusBadRequest,
+				Message: "invalid request body",
+			})
 		}
 	}
 
@@ -71,9 +87,13 @@ func (h *Handler) RegisterUser(c echo.Context) error {
 		if err.Error() == "user already exists" {
 			statusCode = http.StatusConflict
 		}
-		return c.JSON(statusCode, model.ErrorResponse{Message: err.Error()})
+		return c.JSON(statusCode, model.ErrorResponse{
+			Code:    statusCode,
+			Message: err.Error(),
+		})
 	}
 
+	resp.Code = http.StatusCreated
 	return c.JSON(http.StatusCreated, resp)
 }
 
@@ -93,17 +113,27 @@ func (h *Handler) Refresh(c echo.Context) error {
 		if r, ok := v.(model.RefreshRequest); ok {
 			req = r
 		} else {
-			return c.JSON(http.StatusBadRequest, model.ErrorResponse{Message: "invalid request body"})
+			return c.JSON(http.StatusBadRequest, model.ErrorResponse{
+				Code:    http.StatusBadRequest,
+				Message: "invalid request body",
+			})
 		}
 	} else {
 		if err := c.Bind(&req); err != nil {
-			return c.JSON(http.StatusBadRequest, model.ErrorResponse{Message: "invalid request body"})
+			return c.JSON(http.StatusBadRequest, model.ErrorResponse{
+				Code:    http.StatusBadRequest,
+				Message: "invalid request body",
+			})
 		}
 	}
 	resp, err := h.service.Auth().Refresh(c.Request().Context(), req, &h.cfg.Jwt)
 	if err != nil {
-		return c.JSON(http.StatusUnauthorized, model.ErrorResponse{Message: err.Error()})
+		return c.JSON(http.StatusUnauthorized, model.ErrorResponse{
+			Code:    http.StatusUnauthorized,
+			Message: err.Error(),
+		})
 	}
 
+	resp.Code = http.StatusOK
 	return c.JSON(http.StatusOK, resp)
 }

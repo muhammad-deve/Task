@@ -7,6 +7,7 @@ import (
 )
 
 type HealthResponse struct {
+	Code   int    `json:"code"`
 	Status string `json:"status"`
 	DB     string `json:"db"`
 }
@@ -38,5 +39,6 @@ func (h *Handler) HealthCheck(c echo.Context) error {
 		response.Status = "degraded"
 	}
 
+	response.Code = statusCode
 	return c.JSON(statusCode, response)
 }

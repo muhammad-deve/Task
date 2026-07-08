@@ -28,7 +28,7 @@ func (h *Handler) CreateDriver(c echo.Context) error {
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, model.DriverErrorResponse{
 			Error: model.ErrorDetail{
-				Code:    "INVALID_REQUEST",
+				Code:    http.StatusBadRequest,
 				Message: "invalid request body",
 			},
 		})
@@ -39,6 +39,7 @@ func (h *Handler) CreateDriver(c echo.Context) error {
 		return h.handleDriverError(c, err)
 	}
 
+	driver.Code = http.StatusCreated
 	return c.JSON(http.StatusCreated, driver)
 }
 
@@ -63,6 +64,7 @@ func (h *Handler) GetDriver(c echo.Context) error {
 		return h.handleDriverError(c, err)
 	}
 
+	driver.Code = http.StatusOK
 	return c.JSON(http.StatusOK, driver)
 }
 
@@ -104,6 +106,7 @@ func (h *Handler) ListDrivers(c echo.Context) error {
 		return h.handleDriverError(c, err)
 	}
 
+	response.Code = http.StatusOK
 	return c.JSON(http.StatusOK, response)
 }
 
@@ -130,7 +133,7 @@ func (h *Handler) UpdateDriver(c echo.Context) error {
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, model.DriverErrorResponse{
 			Error: model.ErrorDetail{
-				Code:    "INVALID_REQUEST",
+				Code:    http.StatusBadRequest,
 				Message: "invalid request body",
 			},
 		})
@@ -141,6 +144,7 @@ func (h *Handler) UpdateDriver(c echo.Context) error {
 		return h.handleDriverError(c, err)
 	}
 
+	driver.Code = http.StatusOK
 	return c.JSON(http.StatusOK, driver)
 }
 
@@ -166,7 +170,7 @@ func (h *Handler) UpdateDriverStatus(c echo.Context) error {
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, model.DriverErrorResponse{
 			Error: model.ErrorDetail{
-				Code:    "INVALID_REQUEST",
+				Code:    http.StatusBadRequest,
 				Message: "invalid request body",
 			},
 		})
@@ -177,6 +181,7 @@ func (h *Handler) UpdateDriverStatus(c echo.Context) error {
 		return h.handleDriverError(c, err)
 	}
 
+	driver.Code = http.StatusOK
 	return c.JSON(http.StatusOK, driver)
 }
 
@@ -218,7 +223,7 @@ func (h *Handler) handleDriverError(c echo.Context, err error) error {
 
 		return c.JSON(status, model.DriverErrorResponse{
 			Error: model.ErrorDetail{
-				Code:    appErr.Code,
+				Code:    status,
 				Message: appErr.Message,
 			},
 		})
@@ -227,7 +232,7 @@ func (h *Handler) handleDriverError(c echo.Context, err error) error {
 	h.logger.Error("internal server error", "error", err)
 	return c.JSON(http.StatusInternalServerError, model.DriverErrorResponse{
 		Error: model.ErrorDetail{
-			Code:    "INTERNAL_ERROR",
+			Code:    http.StatusInternalServerError,
 			Message: "internal server error",
 		},
 	})
@@ -253,5 +258,6 @@ func (h *Handler) GetActiveDriversStats(c echo.Context) error {
 		return h.handleDriverError(c, err)
 	}
 
+	stats.Code = http.StatusOK
 	return c.JSON(http.StatusOK, stats)
 }

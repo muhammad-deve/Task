@@ -59,7 +59,10 @@ func LoginRateLimiter() echo.MiddlewareFunc {
 			return c.RealIP(), nil
 		},
 		ErrorHandler: func(c echo.Context, err error) error {
-			return c.JSON(http.StatusTooManyRequests, model.ErrorResponse{Message: "too many login attempts"})
+			return c.JSON(http.StatusTooManyRequests, model.ErrorResponse{
+				Code:    http.StatusTooManyRequests,
+				Message: "too many login attempts",
+			})
 		},
 	})
 }
@@ -80,12 +83,18 @@ func CheckAuth(cfg *config.Config) echo.MiddlewareFunc {
 			}
 
 			if accessToken == "" {
-				return c.JSON(http.StatusUnauthorized, model.ErrorResponse{Message: "you are not logged in"})
+				return c.JSON(http.StatusUnauthorized, model.ErrorResponse{
+					Code:    http.StatusUnauthorized,
+					Message: "you are not logged in",
+				})
 			}
 
 			sub, err := utils.ValidateJWT(accessToken, cfg.Jwt.SecretKey)
 			if err != nil {
-				return c.JSON(http.StatusUnauthorized, model.ErrorResponse{Message: err.Error()})
+				return c.JSON(http.StatusUnauthorized, model.ErrorResponse{
+					Code:    http.StatusUnauthorized,
+					Message: err.Error(),
+				})
 			}
 
 			c.Set("user_id", fmt.Sprint(sub))
@@ -99,10 +108,16 @@ func ValidateLoginInput(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		var req model.LoginRequest
 		if err := c.Bind(&req); err != nil {
-			return c.JSON(http.StatusBadRequest, model.ErrorResponse{Message: "invalid request body"})
+			return c.JSON(http.StatusBadRequest, model.ErrorResponse{
+				Code:    http.StatusBadRequest,
+				Message: "invalid request body",
+			})
 		}
 		if req.PhoneNumber == "" || req.Password == "" {
-			return c.JSON(http.StatusBadRequest, model.ErrorResponse{Message: "phone number and password are required"})
+			return c.JSON(http.StatusBadRequest, model.ErrorResponse{
+				Code:    http.StatusBadRequest,
+				Message: "phone number and password are required",
+			})
 		}
 
 		c.Set("loginBody", req)
@@ -115,15 +130,24 @@ func ValidateRegisterInput(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		var req model.RegisterRequest
 		if err := c.Bind(&req); err != nil {
-			return c.JSON(http.StatusBadRequest, model.ErrorResponse{Message: "invalid request body"})
+			return c.JSON(http.StatusBadRequest, model.ErrorResponse{
+				Code:    http.StatusBadRequest,
+				Message: "invalid request body",
+			})
 		}
 		if req.PhoneNumber == "" || req.Password == "" {
-			return c.JSON(http.StatusBadRequest, model.ErrorResponse{Message: "phone number and password are required"})
+			return c.JSON(http.StatusBadRequest, model.ErrorResponse{
+				Code:    http.StatusBadRequest,
+				Message: "phone number and password are required",
+			})
 		}
 
 		// Validate password: at least 8 characters with letters and numbers
 		if !utils.ValidatePassword(req.Password) {
-			return c.JSON(http.StatusBadRequest, model.ErrorResponse{Message: "password must be at least 8 characters and contain both letters and numbers"})
+			return c.JSON(http.StatusBadRequest, model.ErrorResponse{
+				Code:    http.StatusBadRequest,
+				Message: "password must be at least 8 characters and contain both letters and numbers",
+			})
 		}
 
 		c.Set("registerBody", req)
@@ -137,10 +161,16 @@ func ValidateRefreshInput(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		var req model.RefreshRequest
 		if err := c.Bind(&req); err != nil {
-			return c.JSON(http.StatusBadRequest, model.ErrorResponse{Message: "invalid request body"})
+			return c.JSON(http.StatusBadRequest, model.ErrorResponse{
+				Code:    http.StatusBadRequest,
+				Message: "invalid request body",
+			})
 		}
 		if req.RefreshToken == "" {
-			return c.JSON(http.StatusBadRequest, model.ErrorResponse{Message: "refresh token is required"})
+			return c.JSON(http.StatusBadRequest, model.ErrorResponse{
+				Code:    http.StatusBadRequest,
+				Message: "refresh token is required",
+			})
 		}
 
 		c.Set("refreshBody", req)

@@ -32,6 +32,7 @@ type UpdateStatusRequest struct {
 }
 
 type DriverResponse struct {
+	Code          int          `json:"code,omitempty"`
 	ID            string       `json:"id"`
 	FullName      string       `json:"full_name"`
 	Phone         string       `json:"phone"`
@@ -44,6 +45,7 @@ type DriverResponse struct {
 }
 
 type ListDriversResponse struct {
+	Code int              `json:"code"`
 	Data []DriverResponse `json:"data"`
 	Meta PaginationMeta   `json:"meta"`
 }
@@ -59,11 +61,12 @@ type DriverErrorResponse struct {
 }
 
 type ErrorDetail struct {
-	Code    string `json:"code"`
+	Code    int    `json:"code"`
 	Message string `json:"message"`
 }
 
 type ActiveDriversStatsResponse struct {
+	Code   int          `json:"code"`
 	Status DriverStatus `json:"status"`
 	Count  int          `json:"count"`
 }
