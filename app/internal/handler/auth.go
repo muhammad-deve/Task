@@ -12,7 +12,7 @@ import (
 // Login handles user login
 // @Summary User login
 // @Description Authenticate user and return access token
-// @Tags Auth
+// @Tags auth
 // @Accept json
 // @Produce json
 // @Param   input  body      model.LoginRequest  true  "Login credentials"
@@ -45,7 +45,7 @@ func (h *Handler) Login(c echo.Context) error {
 // Register handles user registration
 // @Summary User registration
 // @Description Register a new user and return token with user data
-// @Tags Auth
+// @Tags auth
 // @Accept json
 // @Produce json
 // @Param   input  body      model.RegisterRequest  true  "Registration data"
@@ -77,12 +77,13 @@ func (h *Handler) RegisterUser(c echo.Context) error {
 // Refresh handles token refresh
 // @Summary Token refresh
 // @Description Refresh access token using refresh token
-// @Tags Auth
+// @Tags auth
 // @Accept json
 // @Produce json
 // @Success 200 {object} model.RefreshResponse
 // @Failure 401 {object} model.ErrorResponse
-// @Router /api/v1/auth/refresh [get]
+// @Security BearerAuth
+// @Router /api/v1/auth/refresh [post]
 func (h *Handler) Refresh(c echo.Context) error {
 	var req model.RefreshRequest
 	if v := c.Get("refreshBody"); v != nil {
@@ -107,7 +108,7 @@ func (h *Handler) Refresh(c echo.Context) error {
 // RegisterWithGoogle handles user registration with Google
 // @Summary User registration with Google
 // @Description Register a new user using Google and return token with user data
-// @Tags Auth
+// @Tags auth
 // @Accept json
 // @Produce json
 // @Param   input  body      model.GoogleAuthRequest  true  "Google auth request"

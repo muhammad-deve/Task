@@ -1,4 +1,3 @@
-basePath: /
 definitions:
   handler.HealthResponse:
     properties:
@@ -211,18 +210,8 @@ definitions:
       total_hours:
         type: number
     type: object
-host: localhost:8080
 info:
-  contact:
-    email: support@example.com
-    name: API Support
-  description: Taxi driver management service with CRUD operations and activity tracking
-  license:
-    name: MIT
-    url: https://opensource.org/licenses/MIT
-  termsOfService: http://swagger.io/terms/
-  title: Driver Registry Service API
-  version: "1.0"
+  contact: {}
 paths:
   /api/v1/auth/login:
     post:
@@ -716,22 +705,4 @@ paths:
       summary: Health check
       tags:
       - system
-schemes:
-- http
-- https
-securityDefinitions:
-  BearerAuth:
-    description: Type "Bearer" followed by a space and JWT token.
-    in: header
-    name: Authorization
-    type: apiKey
 swagger: "2.0"
-tags:
-- description: Driver management operations
-  name: drivers
-- description: Driver activity tracking and working hours
-  name: driver-activity
-- description: System health and monitoring
-  name: system
-- description: Authentication endpoints
-  name: auth

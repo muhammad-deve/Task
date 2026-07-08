@@ -34,3 +34,39 @@ local-infra-up:
 
 local-infra-down:
 	docker compose -f docker-compose.local-infra.yml down
+
+build:
+	cd ${APP_DIR} && go build -o ../build/app.exe ./cmd/main.go
+
+test:
+	cd ${APP_DIR} && go test ./...
+
+test-verbose:
+	cd ${APP_DIR} && go test -v ./...
+
+lint:
+	cd ${APP_DIR} && golangci-lint run
+
+migrate-up:
+	cd ${APP_DIR} && migrate -path migrations -database "postgresql://postgres:postgres@localhost:5432/drivers_db?sslmode=disable" up
+
+migrate-down:
+	cd ${APP_DIR} && migrate -path migrations -database "postgresql://postgres:postgres@localhost:5432/drivers_db?sslmode=disable" down
+
+clean:
+	rm -rf ${APP_DIR}/build
+
+help:
+	@echo "Available commands:"
+	@echo "  make run              - Run the application"
+	@echo "  make build            - Build the application"
+	@echo "  make test             - Run tests"
+	@echo "  make test-verbose     - Run tests with verbose output"
+	@echo "  make sqlc-gen         - Generate sqlc code"
+	@echo "  make swaggen          - Generate swagger docs"
+	@echo "  make migrate-up       - Run database migrations"
+	@echo "  make migrate-down     - Rollback database migrations"
+	@echo "  make local-infra-up   - Start local infrastructure (Postgres, MinIO)"
+	@echo "  make local-infra-down - Stop local infrastructure"
+	@echo "  make lint             - Run golangci-lint"
+	@echo "  make clean            - Clean build artifacts"

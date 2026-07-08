@@ -5,8 +5,30 @@
 package pg
 
 import (
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 )
+
+type Driver struct {
+	ID            uuid.UUID        `json:"id"`
+	FullName      string           `json:"full_name"`
+	Phone         string           `json:"phone"`
+	LicenseNumber string           `json:"license_number"`
+	CarModel      string           `json:"car_model"`
+	CarPlate      string           `json:"car_plate"`
+	Status        string           `json:"status"`
+	CreatedAt     pgtype.Timestamp `json:"created_at"`
+	UpdatedAt     pgtype.Timestamp `json:"updated_at"`
+	DeletedAt     pgtype.Timestamp `json:"deleted_at"`
+}
+
+type DriverActivityLog struct {
+	ID        uuid.UUID        `json:"id"`
+	DriverID  uuid.UUID        `json:"driver_id"`
+	Action    string           `json:"action"`
+	Timestamp pgtype.Timestamp `json:"timestamp"`
+	Notes     *string          `json:"notes"`
+}
 
 type User struct {
 	ID                      string           `json:"id"`

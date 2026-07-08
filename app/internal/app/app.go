@@ -13,6 +13,7 @@ import (
 	echoSwagger "github.com/swaggo/echo-swagger"
 	"gitlab.yurtal.tech/company/blitz/back/internal/config"
 	"gitlab.yurtal.tech/company/blitz/back/internal/handler"
+	"gitlab.yurtal.tech/company/blitz/back/internal/middleware"
 	"gitlab.yurtal.tech/company/blitz/back/internal/migrate"
 	"gitlab.yurtal.tech/company/blitz/back/internal/repository"
 	"gitlab.yurtal.tech/company/blitz/back/internal/service"
@@ -23,18 +24,45 @@ import (
 	_ "gitlab.yurtal.tech/company/blitz/back/internal/api/docs"
 )
 
-// @title Swagger Task API
+// @title Driver Registry Service API
 // @version 1.0
-// @description Task API server.
+// @description Taxi driver management service with CRUD operations and activity tracking
+// @termsOfService http://swagger.io/terms/
+
+// @contact.name API Support
+// @contact.email support@example.com
+
+// @license.name MIT
+// @license.url https://opensource.org/licenses/MIT
 
 // @host localhost:8080
 // @BasePath /
+// @schemes http https
+
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+// @description Type "Bearer" followed by a space and JWT token.
+
+// @tag.name drivers
+// @tag.description Driver management operations
+
+// @tag.name driver-activity
+// @tag.description Driver activity tracking and working hours
+
+// @tag.name system
+// @tag.description System health and monitoring
+
+// @tag.name auth
+// @tag.description Authentication endpoints
 func Run(cfg *config.Config) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
 	l := logger.New(cfg.Logger.Level)
 	e := echo.New()
+
+	middleware.SetupMiddleware(e, cfg)
 
 	pgClient, err := pg.New(pg.Username(cfg.Postgres.User), pg.Password(cfg.Postgres.Password),
 		pg.Host(cfg.Postgres.Host), pg.Port(cfg.Postgres.Port),
@@ -58,7 +86,7 @@ func Run(cfg *config.Config) {
 
 	service := service.New(cfg, repos)
 
-	handler := handler.New(l, cfg, service)
+	handler := handler.New(l, cfg, service, pgClient.Pool)
 	handler.Register(e)
 
 	e.GET("/swagger/*", echoSwagger.WrapHandler)
