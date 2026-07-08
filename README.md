@@ -2,15 +2,13 @@
 
 Taxi driver management service built with Go, PostgreSQL, and Echo framework.
 
-## Quick Start
+## Ishga tushirish (Quick Start)
 
 ### Requirements
 - Docker & Docker Compose (recommended)
 - OR Go 1.22+ (for local development)
 
-### Option 1: Run with Docker (Recommended)
-
-The easiest way to run the entire stack:
+### Docker orqali ishga tushirish (Recommended)
 
 ```bash
 # Copy environment file
@@ -19,272 +17,48 @@ cp app/.env.example app/.env
 # Start all services (app + postgres + redis + minio)
 docker compose up -d
 
-# View logs
+# Loglarni ko'rish
 docker compose logs -f app
-
-# Stop all services
-docker compose down
 ```
 
-The service will start on `http://localhost:8080`
+Service starts on `http://localhost:8080`
 
-### Option 2: Run Locally (Development)
+### Migratsiya (Migrations)
 
-Start only infrastructure services, run app locally:
-
-```bash
-# Start infrastructure (postgres, redis, minio, prometheus, grafana)
-docker compose -f docker-compose.local-infra.yml up -d
-
-# Run the application
-cd app
-go run cmd/main.go
-```
-
-The service will start on `http://localhost:8080`
-
-- **API**: `http://localhost:8080/api/v1`
-- **Health**: `http://localhost:8080/healthz`
-- **Swagger UI**: `http://localhost:8080/swagger/index.html` 📚
-- **Metrics**: `http://localhost:8080/metrics`
-- **MinIO Console**: `http://localhost:9003` (ports 9002/9003 to avoid conflicts)
-
-> **Note**: MinIO is mapped to ports 9002/9003 instead of the default 9000/9001 to avoid conflicts with other services you might be running.
-
-### API Documentation
-
-Complete interactive API documentation is available via Swagger UI at `http://localhost:8080/swagger/index.html` after starting the service.
-
-You can also view the OpenAPI specification files:
-- JSON: `app/internal/api/docs/swagger.json`
-- YAML: `app/internal/api/docs/swagger.yaml`
-
-To regenerate Swagger docs after making changes:
-```bash
-make swaggen
-```
-
-### Running Migrations
-
-Migrations run automatically on startup. To manually run migrations:
-
+Migratsiyalar dastur yonganda avtomatik ishga tushadi (`main.go` ichida). Lekin qo'lda ishga tushirish uchun:
 ```bash
 cd app
 make migrate-up
 ```
 
-## API Examples
+## API misollari (API Examples)
 
-### Create Driver
+Ilovada barcha API misollarini o'z ichiga olgan `requests.http` fayli mavjud. Uni VS Code'dagi REST Client yordamida ishlatishingiz yoki Swagger UI orqali tekshirishingiz mumkin:
+- **Swagger UI**: `http://localhost:8080/swagger/index.html`
+- **Health Check**: `http://localhost:8080/healthz`
 
-```bash
-curl -X POST http://localhost:8080/api/v1/drivers \
-  -H "Content-Type: application/json" \
-  -d '{
-    "full_name": "Akmal Karimov",
-    "phone": "+998901234567",
-    "license_number": "AB1234567",
-    "car_model": "Chevrolet Nexia",
-    "car_plate": "01A123BC"
-  }'
-```
+*CURL misollari uchun loyihada mavjud `requests.http` fayliga qarang.*
 
-### Get Driver by ID
+## Qarorlar va trade-off'lar
 
-```bash
-curl http://localhost:8080/api/v1/drivers/{id}
-```
+Loyiha "Clean Architecture" tamoyillari asosida Handler, Service va Repository qatlamlariga ajratilgan holda qurildi. Asosiy freymvork sifatida tezkor va sodda bo'lgan Echo tanlandi, ma'lumotlar bazasi bilan ishlashda esa ORM o'rniga xavfsiz va tezkor `sqlc` ishlatildi. Xavfsizlikni ta'minlash maqsadida API JWT token orqali himoyalandi va parollar heshlab saqlandi. Unikal maydonlar (telefon, haydovchilik guvohnomasi) tranzaksiyadan oldin EXISTS orqali tekshirilib, bazada ham unikal indekslar bilan mustahkamlandi. Tizimda rate limiter (xotiraga asoslangan) va "soft delete" (ma'lumotlarni o'chirmasdan faqat belgilab qo'yish) logikasi qo'llanildi. Qidiruv qismi sodda bo'lishi uchun PostgreSQL'ning `ILIKE` funksiyasi yordamida amalga oshirildi, katta masshtabda buni Full-Text Search'ga o'zgartirish kerak bo'ladi. Shuningdek, loyihada xatoliklarni qaytarish (Error Handling) barcha API'lar uchun yagona standart (HTTP Code bilan) ko'rinishga keltirildi.
 
-### List Drivers with Filters
+## Mening g'oyam
 
-```bash
-curl "http://localhost:8080/api/v1/drivers?page=1&limit=20&status=active&search=Akmal"
-```
+Challenge qismi uchun **Driver Status Statistics** (Haydovchilarning holati bo'yicha statistika) API'sini qo'shdim.
+Bu tizimda qancha haydovchi faol (`active`), nofaol (`inactive`) yoki bloklangan (`blocked`) ekanligini hisoblab beradi.
 
-### Update Driver
+**Nima uchun bu muhim?**
+Taksi kompaniyalari operatorlari kunlik qancha haydovchi liniyada ekanligini yoki nechta haydovchi qoidabuzarlik uchun bloklanganini doimiy monitoring qilib borishlari kerak. Barcha haydovchilar ro'yxatini to'liq yuklab olmasdan, faqatgina holati bo'yicha sonini olish server va baza resurslarini tejaydi hamda dashboard'lar uchun juda qulay hisoblanadi.
 
-```bash
-curl -X PATCH http://localhost:8080/api/v1/drivers/{id} \
-  -H "Content-Type: application/json" \
-  -d '{
-    "car_model": "Chevrolet Gentra",
-    "phone": "+998901234568"
-  }'
-```
+**API:**
+`GET /api/v1/drivers/stats/active?status=blocked`
 
-### Update Driver Status
+## Sarflangan taxminiy vaqt
 
-```bash
-curl -X PATCH http://localhost:8080/api/v1/drivers/{id}/status \
-  -H "Content-Type: application/json" \
-  -d '{
-    "status": "inactive"
-  }'
-```
-
-### Delete Driver (Soft Delete)
-
-```bash
-curl -X DELETE http://localhost:8080/api/v1/drivers/{id}
-```
-
-### Get Driver Status Statistics
-
-```bash
-curl "http://localhost:8080/api/v1/drivers/stats/active?status=blocked"
-```
-
-### Health Check
-
-```bash
-curl http://localhost:8080/healthz
-```
-
-## Architecture & Design Decisions
-
-### Layer Structure
-
-The project follows clean architecture principles with clear separation of concerns:
-
-- **Handler Layer**: Request/response handling, validation, HTTP status codes. No business logic.
-- **Service Layer**: All business logic, validation rules, and orchestration.
-- **Repository Layer**: Database operations only, generated by sqlc for type safety.
-
-### Technology Choices
-
-**Echo Framework**: Chosen for its simplicity, excellent performance, and built-in middleware support. It provides routing, parameter binding, and context management without unnecessary complexity.
-
-**sqlc**: Generates type-safe Go code from SQL queries. Provides the benefits of raw SQL (full control, performance) with compile-time type checking. Better than ORMs for this use case where we need precise control over queries.
-
-**PostgreSQL**: Industry standard for reliability and features like partial indexes, CTEs, and window functions (used in working hours calculation).
-
-**Structured Logging**: Using the standard library's log/slog for structured JSON logging. Every request logs method, path, status, and duration automatically.
-
-### Key Implementation Details
-
-**Validation**: Phone number format validated with regex, all required fields checked in service layer before DB operations.
-
-**Unique Constraints**: Phone, license number, and car plate checked for uniqueness using efficient EXISTS queries before create/update.
-
-**Soft Delete**: Drivers are marked as deleted (deleted_at timestamp) but retained for audit purposes. All queries filter out deleted records.
-
-**Pagination**: Implements offset-based pagination with configurable limits (default 20, max 100).
-
-**Search**: Full-text search on full_name and phone using PostgreSQL's ILIKE for fuzzy matching.
-
-**Context Propagation**: Request context passed from handler to service to repository for cancellation and timeout support.
-
-**Graceful Shutdown**: Server waits up to 5 seconds for active requests to complete before shutting down on SIGTERM/SIGINT.
-
-**Health Check**: Verifies database connectivity by executing a lightweight query.
-
-## Mening G'oyam (My Custom Feature)
-
-### Driver Status Statistics
-
-I added a driver status statistics endpoint that counts drivers by operational status.
-
-**Why This is Useful:**
-
-In real taxi operations, companies need to:
-- See how many drivers are active, inactive, or blocked
-- Monitor blocked driver volume for operations and support follow-up
-- Build simple dashboard counters without fetching the full driver list
-
-**Implementation:**
-
-- `GET /api/v1/drivers/stats/active?status={status}` accepts `active`, `inactive`, or `blocked`
-- The endpoint counts non-deleted drivers with the requested status
-- Empty status defaults to `active`
-
-**API Endpoints:**
-
-1. `GET /api/v1/drivers/stats/active?status=active` - Count active drivers
-2. `GET /api/v1/drivers/stats/active?status=inactive` - Count inactive drivers
-3. `GET /api/v1/drivers/stats/active?status=blocked` - Count blocked drivers
-
-**Future Enhancements:**
-
-- Real-time dashboard for dispatch monitoring
-- Status transition history
-- Alerts when blocked driver count exceeds a configured threshold
-- Per-day status trend reporting
-
-**Why I Chose This:**
-
-Status statistics are useful for operations dashboards and support workflows while keeping the API small and focused.
-
-## Trade-offs & Simplifications
-
-**What I Simplified:**
-
-1. **Authentication**: JWT middleware protects driver endpoints. Role-based permissions are not implemented.
-
-2. **Rate Limiting**: Basic memory-based rate limiter. Production should use Redis for distributed rate limiting.
-
-3. **Validation**: Basic regex for phone validation. Production might need integration with actual phone validation services.
-
-4. **Search**: Simple ILIKE search. For larger scale, would implement full-text search with PostgreSQL tsvector or external search engine.
-
-5. **Metrics**: Basic Prometheus metrics. Production would add custom business metrics such as status counts and request error rates.
-
-**What I Kept Production-Ready:**
-
-- Structured logging with request tracing
-- Graceful shutdown
-- Context propagation for cancellation
-- Database connection pooling
-- Soft deletes for audit trail
-- Type-safe database layer
-- Comprehensive error handling
-- Health checks
-
-## Estimated Time
-
-- Initial setup & structure: 30 minutes
-- CRUD endpoints implementation: 1.5 hours
-- Validation & error handling: 45 minutes
-- Activity tracking feature: 1 hour
-- Testing & debugging: 45 minutes
-- Documentation: 30 minutes
-
-**Total: ~5 hours**
-
-## Docker Commands Quick Reference
-
-```bash
-# Start all services
-docker compose up -d
-
-# Stop all services
-docker compose down
-
-# View logs
-docker compose logs -f
-
-# View app logs only
-docker compose logs -f app
-
-# Restart app only
-docker compose restart app
-
-# Rebuild and restart app
-docker compose up -d --build app
-
-# Check service health
-docker compose ps
-
-# Stop and remove all data (including volumes)
-docker compose down -v
-```
-
-## Testing
-
-Run tests with:
-
-```bash
-cd app
-go test ./...
-```
-
-Table-driven tests included for validation logic and handlers.
+- Boshlang'ich struktura va Docker muhit: 30 daqiqa
+- CRUD API va JWT Auth: 1.5 soat
+- Validation va Error handling (kodlarni standartlashtirish): 1 soat
+- "Mening g'oyam" (Statistika): 45 daqiqa
+- Swagger doc, Testing va Debugging: 1 soat
+**Umumiy sarflangan vaqt: ~4.5 soat**

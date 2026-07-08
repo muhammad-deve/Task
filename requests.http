@@ -1,0 +1,104 @@
+### Blitz Backend API Requests
+### Use VS Code REST Client extension to run these requests
+
+@baseUrl = http://localhost:8080/api/v1
+# Once you login, replace the token below with your actual accessToken
+@authToken = YOUR_ACCESS_TOKEN_HERE
+
+### ==========================================
+### 1. SYSTEM
+### ==========================================
+
+### Health Check
+GET http://localhost:8080/healthz
+
+### ==========================================
+### 2. AUTHENTICATION
+### ==========================================
+
+### Register User
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+    "fullName": "Umar Samandarov",
+    "phoneNumber": "+998901234567",
+    "password": "Password123!"
+}
+
+### Login
+# @name login
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+    "phoneNumber": "+998901234567",
+    "password": "Password123!"
+}
+
+### ==========================================
+### 3. DRIVERS
+### ==========================================
+
+### Create Driver
+POST {{baseUrl}}/drivers
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+    "full_name": "Akmal Karimov",
+    "phone": "+998911112233",
+    "license_number": "AB1234567",
+    "car_model": "Chevrolet Cobalt",
+    "car_plate": "01A123BC",
+    "status": "active"
+}
+
+### List Drivers (Pagination & Filter)
+GET {{baseUrl}}/drivers?page=1&limit=10&status=active
+Authorization: Bearer {{authToken}}
+
+### Search Drivers (by Name or Phone)
+GET {{baseUrl}}/drivers?search=Akmal
+Authorization: Bearer {{authToken}}
+
+### Get Driver by ID
+# Replace ID with an actual driver ID from the list response
+@driverId = YOUR_DRIVER_ID_HERE
+GET {{baseUrl}}/drivers/{{driverId}}
+Authorization: Bearer {{authToken}}
+
+### Update Driver Info
+PATCH {{baseUrl}}/drivers/{{driverId}}
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+    "car_model": "Chevrolet Tracker",
+    "phone": "+998911112244"
+}
+
+### Update Driver Status
+PATCH {{baseUrl}}/drivers/{{driverId}}/status
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+    "status": "blocked"
+}
+
+### Delete Driver (Soft Delete)
+DELETE {{baseUrl}}/drivers/{{driverId}}
+Authorization: Bearer {{authToken}}
+
+### ==========================================
+### 4. STATISTICS (MENING G'OYAM)
+### ==========================================
+
+### Get Active Drivers Count
+GET {{baseUrl}}/drivers/stats/active?status=active
+Authorization: Bearer {{authToken}}
+
+### Get Blocked Drivers Count
+GET {{baseUrl}}/drivers/stats/active?status=blocked
+Authorization: Bearer {{authToken}}
