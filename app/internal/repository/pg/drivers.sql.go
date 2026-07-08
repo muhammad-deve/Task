@@ -71,8 +71,8 @@ func (q *Queries) CheckPhoneExists(ctx context.Context, arg CheckPhoneExistsPara
 const countDrivers = `-- name: CountDrivers :one
 SELECT COUNT(*) FROM drivers
 WHERE deleted_at IS NULL
-AND ($1::text IS NULL OR status = $1)
-AND ($2::text IS NULL OR full_name ILIKE '%' || $2 || '%' OR phone ILIKE '%' || $2 || '%')
+AND (NULLIF($1::text, '') IS NULL OR status = $1)
+AND (NULLIF($2::text, '') IS NULL OR full_name ILIKE '%' || $2 || '%' OR phone ILIKE '%' || $2 || '%')
 `
 
 type CountDriversParams struct {
@@ -160,8 +160,8 @@ func (q *Queries) GetDriverByID(ctx context.Context, id uuid.UUID) (Driver, erro
 const getDrivers = `-- name: GetDrivers :many
 SELECT id, full_name, phone, license_number, car_model, car_plate, status, created_at, updated_at, deleted_at FROM drivers
 WHERE deleted_at IS NULL
-AND ($1::text IS NULL OR status = $1)
-AND ($2::text IS NULL OR full_name ILIKE '%' || $2 || '%' OR phone ILIKE '%' || $2 || '%')
+AND (NULLIF($1::text, '') IS NULL OR status = $1)
+AND (NULLIF($2::text, '') IS NULL OR full_name ILIKE '%' || $2 || '%' OR phone ILIKE '%' || $2 || '%')
 ORDER BY created_at DESC
 LIMIT $3 OFFSET $4
 `

@@ -32,7 +32,9 @@ func (h *Handler) Register(router *echo.Echo) {
 			auth.POST("/refresh", h.Refresh, mw.ValidateRefreshInput)
 		}
 
-		drivers := api.Group("/drivers")
+		protected := api.Group("", mw.CheckAuth(h.cfg))
+
+		drivers := protected.Group("/drivers")
 		{
 			drivers.POST("", h.CreateDriver)
 			drivers.GET("", h.ListDrivers)

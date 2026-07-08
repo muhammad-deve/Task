@@ -76,6 +76,9 @@ func (s *DriverService) GetDriver(ctx context.Context, id string) (model.DriverR
 }
 
 func (s *DriverService) ListDrivers(ctx context.Context, page, limit int, status, search string) (model.ListDriversResponse, error) {
+	status = strings.TrimSpace(status)
+	search = strings.TrimSpace(search)
+
 	if page < 1 {
 		page = 1
 	}

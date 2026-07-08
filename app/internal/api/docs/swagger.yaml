@@ -318,7 +318,11 @@ paths:
         in: query
         name: limit
         type: integer
-      - description: Filter by status (active, inactive, blocked)
+      - description: Filter by status
+        enum:
+        - active
+        - inactive
+        - blocked
         in: query
         name: status
         type: string

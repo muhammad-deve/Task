@@ -71,7 +71,7 @@ func (h *Handler) GetDriver(c echo.Context) error {
 // @Produce json
 // @Param page query int false "Page number" default(1)
 // @Param limit query int false "Items per page" default(20)
-// @Param status query string false "Filter by status (active, inactive, blocked)"
+// @Param status query model.DriverStatus false "Filter by status"
 // @Param search query string false "Search by name or phone"
 // @Success 200 {object} model.ListDriversResponse
 // @Failure 400 {object} model.DriverErrorResponse

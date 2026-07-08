@@ -17,16 +17,16 @@ WHERE id = $1 AND deleted_at IS NULL;
 -- name: GetDrivers :many
 SELECT * FROM drivers
 WHERE deleted_at IS NULL
-AND ($1::text IS NULL OR status = $1)
-AND ($2::text IS NULL OR full_name ILIKE '%' || $2 || '%' OR phone ILIKE '%' || $2 || '%')
+AND (NULLIF($1::text, '') IS NULL OR status = $1)
+AND (NULLIF($2::text, '') IS NULL OR full_name ILIKE '%' || $2 || '%' OR phone ILIKE '%' || $2 || '%')
 ORDER BY created_at DESC
 LIMIT $3 OFFSET $4;
 
 -- name: CountDrivers :one
 SELECT COUNT(*) FROM drivers
 WHERE deleted_at IS NULL
-AND ($1::text IS NULL OR status = $1)
-AND ($2::text IS NULL OR full_name ILIKE '%' || $2 || '%' OR phone ILIKE '%' || $2 || '%');
+AND (NULLIF($1::text, '') IS NULL OR status = $1)
+AND (NULLIF($2::text, '') IS NULL OR full_name ILIKE '%' || $2 || '%' OR phone ILIKE '%' || $2 || '%');
 
 -- name: UpdateDriver :one
 UPDATE drivers

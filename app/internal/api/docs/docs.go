@@ -186,8 +186,13 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
+                        "enum": [
+                            "active",
+                            "inactive",
+                            "blocked"
+                        ],
                         "type": "string",
-                        "description": "Filter by status (active, inactive, blocked)",
+                        "description": "Filter by status",
                         "name": "status",
                         "in": "query"
                     },
