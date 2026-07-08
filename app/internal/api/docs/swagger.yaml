@@ -168,7 +168,6 @@ definitions:
       phoneNumber:
         type: string
     type: object
-host: task.goport.uz
 info:
   contact:
     email: support@example.com

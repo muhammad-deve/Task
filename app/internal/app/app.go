@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
@@ -11,6 +12,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	echoSwagger "github.com/swaggo/echo-swagger"
+	"gitlab.yurtal.tech/company/blitz/back/internal/api/docs"
 	"gitlab.yurtal.tech/company/blitz/back/internal/config"
 	"gitlab.yurtal.tech/company/blitz/back/internal/handler"
 	"gitlab.yurtal.tech/company/blitz/back/internal/middleware"
@@ -20,8 +22,6 @@ import (
 	"gitlab.yurtal.tech/company/blitz/back/pkg/logger"
 	"gitlab.yurtal.tech/company/blitz/back/pkg/minio"
 	pg "gitlab.yurtal.tech/company/blitz/back/pkg/postgres"
-
-	_ "gitlab.yurtal.tech/company/blitz/back/internal/api/docs"
 )
 
 // @title Driver Registry Service API
@@ -35,7 +35,6 @@ import (
 // @license.name MIT
 // @license.url https://opensource.org/licenses/MIT
 
-// @host task.goport.uz
 // @BasePath /
 // @schemes https http
 
@@ -86,7 +85,28 @@ func Run(cfg *config.Config) {
 	handler := handler.New(l, cfg, service, pgClient.Pool)
 	handler.Register(e)
 
-	e.GET("/swagger/*", echoSwagger.WrapHandler)
+	// Dynamic swagger spec — patches host+scheme from each incoming request so
+	// the same binary works on localhost:8080 (http) and task.goport.uz (https)
+	// without any manual changes or re-building.
+	e.GET("/swagger/doc.json", func(c echo.Context) error {
+		var spec map[string]interface{}
+		if err := json.Unmarshal([]byte(docs.SwaggerInfo.ReadDoc()), &spec); err != nil {
+			return err
+		}
+
+		// By removing host and schemes completely, Swagger UI will automatically
+		// use the exact host and protocol (http/https) from the browser's URL bar.
+		// This makes it work flawlessly on localhost, goport, ngrok, or any domain.
+		delete(spec, "host")
+		delete(spec, "schemes")
+
+		return c.JSON(http.StatusOK, spec)
+	})
+
+	e.GET("/swagger/*", echoSwagger.EchoWrapHandler(
+		echoSwagger.URL("/swagger/doc.json"),
+		echoSwagger.DocExpansion("list"),
+	))
 
 	errc := make(chan error)
 

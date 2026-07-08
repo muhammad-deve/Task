@@ -24,12 +24,16 @@ func SetupMiddleware(e *echo.Echo, cfg *config.Config) {
 	// Recover from panics
 	e.Use(middleware.Recover())
 
-	// CORS
+	// CORS - accept requests from any origin (mirrors the request Origin back)
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins:     cfg.Server.Http.Cors.AllowedOrigins,
-		AllowMethods:     cfg.Server.Http.Cors.AllowedMethods,
-		AllowHeaders:     cfg.Server.Http.Cors.AllowedHeaders,
-		AllowCredentials: cfg.Server.Http.Cors.AllowCredentials,
+		AllowOriginFunc: func(origin string) (bool, error) {
+			return true, nil
+		},
+		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization", "X-Requested-With", "X-CSRF-Token"},
+		ExposeHeaders:    []string{"Content-Length", "Authorization", "Content-Disposition"},
+		AllowCredentials: false,
+		MaxAge:           86400,
 	}))
 
 	// Timeout
