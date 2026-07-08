@@ -74,6 +74,6 @@ func New(opts ...Option) (rds *Redis, err error) {
 
 func (p *Redis) Close() {
 	if p.Pool != nil {
-		p.Pool.Close()
+		_ = p.Pool.Close()
 	}
 }
